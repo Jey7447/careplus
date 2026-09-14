@@ -1,4 +1,5 @@
 import { CalendarDays, ClipboardList, HeartPulse, LayoutDashboard, Settings, Stethoscope, Users } from 'lucide-react';
+import { createClient } from '../lib/supabase/server';
 
 const stats = [
   ['Today\'s Appointments', CalendarDays],
@@ -16,7 +17,11 @@ const navigation = [
   ['Settings', Settings, false],
 ] as const;
 
-export default function Home() {
+export default async function Home() {
+  const supabase = await createClient();
+  const { data: claimsData } = await supabase.auth.getClaims();
+  const email = typeof claimsData?.claims?.email === 'string' ? claimsData.claims.email : 'Authenticated staff';
+
   return (
     <main className="min-h-screen">
       <div className="flex min-h-screen">
@@ -37,14 +42,24 @@ export default function Home() {
 
         <section className="flex-1">
           <header className="border-b border-[var(--border)] bg-white px-6 py-5 lg:px-8">
-            <div className="mx-auto max-w-7xl">
-              <p className="text-sm text-slate-500">CarePlus Medical Centre</p>
-              <h1 className="mt-1 text-2xl font-semibold">Dashboard</h1>
-              <p className="mt-1 text-sm text-slate-500">Overview of centre activity.</p>
+            <div className="mx-auto flex max-w-7xl items-center justify-between gap-6">
+              <div>
+                <p className="text-sm text-slate-500">CarePlus Medical Centre</p>
+                <h1 className="mt-1 text-2xl font-semibold">Dashboard</h1>
+                <p className="mt-1 text-sm text-slate-500">Overview of centre activity.</p>
+              </div>
+              <div className="hidden text-right sm:block">
+                <p className="text-xs text-slate-500">Signed in as</p>
+                <p className="mt-1 text-sm font-medium text-slate-800">{email}</p>
+              </div>
             </div>
           </header>
 
           <div className="mx-auto max-w-7xl space-y-6 p-6 lg:p-8">
+            <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4 text-sm text-slate-600">
+              Authentication is active. Database modules will be connected after the access-control layer is finalized.
+            </div>
+
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
               {stats.map(([label, Icon]) => (
                 <div key={label} className="rounded-2xl border border-[var(--border)] bg-white p-5">
