@@ -31,14 +31,39 @@ export async function middleware(request: NextRequest) {
   const claims = data?.claims;
   const pathname = request.nextUrl.pathname;
   const isLoginPage = pathname === '/login';
+  const isUnauthorizedPage = pathname === '/unauthorized';
 
-  if (!claims && !isLoginPage) {
-    const url = request.nextUrl.clone();
-    url.pathname = '/login';
-    return NextResponse.redirect(url);
+  if (!claims) {
+    if (!isLoginPage) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/login';
+      return NextResponse.redirect(url);
+    }
+
+    return response;
   }
 
-  if (claims && isLoginPage) {
+  const { data: staffRecord, error: staffError } = await supabase
+    .from('careplus_staff_users')
+    .select('id')
+    .eq('auth_user_id', claims.sub)
+    .eq('active', true)
+    .eq('role', 'admin')
+    .maybeSingle();
+
+  const isCarePlusAdmin = !staffError && Boolean(staffRecord);
+
+  if (!isCarePlusAdmin) {
+    if (!isUnauthorizedPage) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/unauthorized';
+      return NextResponse.redirect(url);
+    }
+
+    return response;
+  }
+
+  if (isLoginPage || isUnauthorizedPage) {
     const url = request.nextUrl.clone();
     url.pathname = '/';
     return NextResponse.redirect(url);
