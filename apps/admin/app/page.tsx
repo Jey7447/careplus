@@ -6,7 +6,7 @@ import { createClient } from '../lib/supabase/server';
 const navigation = [
   ['Dashboard', '/', LayoutDashboard],
   ['Appointments', '/appointments', CalendarDays],
-  ['Patients', '#', Users],
+  ['Patients', '/patients', Users],
   ['Doctors', '#', Stethoscope],
   ['Notifications', '#', ClipboardList],
   ['Settings', '#', Settings],
