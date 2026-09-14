@@ -8,26 +8,23 @@ const navigation = [
   ['Appointments', '/appointments', CalendarDays],
   ['Patients', '/patients', Users],
   ['Doctors', '/doctors', Stethoscope],
-  ['Notifications', '#', ClipboardList],
+  ['Notifications', '/notifications', ClipboardList],
   ['Settings', '#', Settings],
 ] as const;
 
 type SearchParams = Promise<{ search?: string; status?: string }>;
-
 export const dynamic = 'force-dynamic';
 
 export default async function DoctorsPage({ searchParams }: { searchParams: SearchParams }) {
   const supabase = await createClient();
   const { data: claimsData } = await supabase.auth.getClaims();
   if (!claimsData?.claims?.sub) redirect('/login');
-
   const { data: staffRecord, error: staffError } = await supabase.from('careplus_staff_users').select('id, role, active').eq('auth_user_id', claimsData.claims.sub).eq('active', true).eq('role', 'admin').maybeSingle();
   if (staffError || !staffRecord) redirect('/unauthorized');
 
   const params = await searchParams;
   const search = (params.search ?? '').trim().toLowerCase();
   const status = params.status === 'Inactive' ? 'Inactive' : params.status === 'Active' ? 'Active' : 'All';
-
   const { data: doctors, error } = await supabase.from('doctors').select('doctor_id, first_name, last_name, specialty, phone, email, active, branch_id').order('doctor_id', { ascending: true }).limit(100);
   const rows = doctors ?? [];
   const branchIds = [...new Set(rows.map((doctor) => doctor.branch_id).filter((id): id is number => id !== null))];
@@ -41,7 +38,6 @@ export default async function DoctorsPage({ searchParams }: { searchParams: Sear
     const branch = branchMap.get(doctor.branch_id) ?? '';
     return `${doctor.first_name} ${doctor.last_name} ${doctor.specialty ?? ''} ${doctor.phone ?? ''} ${doctor.email ?? ''} ${branch}`.toLowerCase().includes(search);
   });
-
   const activeCount = rows.filter((doctor) => doctor.active).length;
   const inactiveCount = rows.filter((doctor) => !doctor.active).length;
   const specialties = new Set(rows.map((doctor) => doctor.specialty).filter(Boolean)).size;
@@ -59,7 +55,7 @@ export default async function DoctorsPage({ searchParams }: { searchParams: Sear
         <div className="mx-auto max-w-7xl space-y-6 p-6 lg:p-8">
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{[['Total doctors', rows.length], ['Active', activeCount], ['Inactive', inactiveCount], ['Specialties', specialties]].map(([label, value]) => <div key={label} className="rounded-2xl border border-[var(--border)] bg-white p-5"><p className="text-sm text-slate-500">{label}</p><p className="mt-3 text-3xl font-semibold">{value}</p></div>)}</div>
           <section className="rounded-2xl border border-[var(--border)] bg-white p-6"><form className="grid gap-4 lg:grid-cols-[1fr_220px_auto]" method="get"><label><span className="text-sm font-medium text-slate-700">Search doctors</span><input name="search" defaultValue={params.search ?? ''} placeholder="Name, specialty, branch, phone or email" className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-200" /></label><label><span className="text-sm font-medium text-slate-700">Status</span><select name="status" defaultValue={status} className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none"><option>All</option><option>Active</option><option>Inactive</option></select></label><button type="submit" className="self-end rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-slate-800">Apply filters</button></form></section>
-          <section className="overflow-hidden rounded-2xl border border-[var(--border)] bg-white"><div className="flex items-center justify-between border-b border-slate-200 px-6 py-5"><div><h2 className="font-semibold">Doctor records</h2><p className="mt-1 text-sm text-slate-500">Showing {filteredRows.length} of up to 100 loaded doctors.</p></div>{error && <span className="rounded-full bg-red-50 px-3 py-1 text-xs text-red-700">Unable to load doctors</span>}</div><div className="overflow-x-auto"><table className="min-w-full text-sm"><thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500"><tr><th className="px-6 py-3 font-medium">Doctor</th><th className="px-6 py-3 font-medium">Specialty</th><th className="px-6 py-3 font-medium">Branch</th><th className="px-6 py-3 font-medium">Contact</th><th className="px-6 py-3 font-medium">Status</th></tr></thead><tbody className="divide-y divide-slate-100">{filteredRows.map((doctor) => <tr key={doctor.doctor_id} className="hover:bg-slate-50"><td className="px-6 py-4"><div className="flex items-center gap-3"><div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-slate-100 text-slate-600"><Stethoscope size={16} /></div><div><p className="font-medium text-slate-900">Dr. {doctor.first_name} {doctor.last_name}</p><p className="mt-1 text-xs text-slate-500">Doctor #{doctor.doctor_id}</p></div></div></td><td className="px-6 py-4 font-medium text-slate-700">{doctor.specialty ?? 'Not recorded'}</td><td className="px-6 py-4"><p className="flex items-center gap-2 text-slate-700"><MapPin size={14} />{branchMap.get(doctor.branch_id) ?? 'Not recorded'}</p></td><td className="px-6 py-4"><p className="flex items-center gap-2 text-slate-700"><Phone size={14} />{doctor.phone ?? 'Not recorded'}</p><p className="mt-1 flex items-center gap-2 break-all text-xs text-slate-500"><Mail size={14} />{doctor.email ?? 'Not recorded'}</p></td><td className="px-6 py-4"><span className={`rounded-full px-2.5 py-1 text-xs font-medium ${doctor.active ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>{doctor.active ? 'Active' : 'Inactive'}</span></td></tr>)}</tbody></table></div>{filteredRows.length === 0 && <div className="p-12 text-center text-sm text-slate-500">No doctors match the current filters.</div>}</section>
+          <section className="overflow-hidden rounded-2xl border border-[var(--border)] bg-white"><div className="flex items-center justify-between border-b border-slate-200 px-6 py-5"><div><h2 className="font-semibold">Doctor records</h2><p className="mt-1 text-sm text-slate-500">Showing {filteredRows.length} of up to 100 loaded doctors.</p></div>{error && <span className="rounded-full bg-red-50 px-3 py-1 text-xs text-red-700">Unable to load doctors</span>}</div><div className="overflow-x-auto"><table className="min-w-full text-sm"><thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500"><tr><th className="px-6 py-3 font-medium">Doctor</th><th className="px-6 py-3 font-medium">Specialty</th><th className="px-6 py-3 font-medium">Branch</th><th className="px-6 py-3 font-medium">Contact</th><th className="px-6 py-3 font-medium">Status</th></tr></thead><tbody className="divide-y divide-slate-100">{filteredRows.map((doctor) => <tr key={doctor.doctor_id} className="hover:bg-slate-50"><td className="px-6 py-4"><div className="flex items-center gap-3"><div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-slate-100 text-slate-600"><Stethoscope size={16} /></div><div><Link href={`/doctors/${doctor.doctor_id}`} className="font-medium text-slate-900 hover:text-slate-600 hover:underline">Dr. {doctor.first_name} {doctor.last_name}</Link><p className="mt-1 text-xs text-slate-500">Doctor #{doctor.doctor_id}</p></div></div></td><td className="px-6 py-4 font-medium text-slate-700">{doctor.specialty ?? 'Not recorded'}</td><td className="px-6 py-4"><p className="flex items-center gap-2 text-slate-700"><MapPin size={14} />{branchMap.get(doctor.branch_id) ?? 'Not recorded'}</p></td><td className="px-6 py-4"><p className="flex items-center gap-2 text-slate-700"><Phone size={14} />{doctor.phone ?? 'Not recorded'}</p><p className="mt-1 flex items-center gap-2 break-all text-xs text-slate-500"><Mail size={14} />{doctor.email ?? 'Not recorded'}</p></td><td className="px-6 py-4"><span className={`rounded-full px-2.5 py-1 text-xs font-medium ${doctor.active ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>{doctor.active ? 'Active' : 'Inactive'}</span></td></tr>)}</tbody></table></div>{filteredRows.length === 0 && <div className="p-12 text-center text-sm text-slate-500">No doctors match the current filters.</div>}</section>
         </div>
       </section>
     </div></main>
