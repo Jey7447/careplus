@@ -1,4 +1,5 @@
 import { CalendarDays, ClipboardList, HeartPulse, LayoutDashboard, Settings, Stethoscope, Users } from 'lucide-react';
+import { redirect } from 'next/navigation';
 import { createClient } from '../lib/supabase/server';
 
 const stats = [
@@ -20,7 +21,24 @@ const navigation = [
 export default async function Home() {
   const supabase = await createClient();
   const { data: claimsData } = await supabase.auth.getClaims();
-  const email = typeof claimsData?.claims?.email === 'string' ? claimsData.claims.email : 'Authenticated staff';
+
+  if (!claimsData?.claims?.sub) {
+    redirect('/login');
+  }
+
+  const { data: staffRecord, error: staffError } = await supabase
+    .from('careplus_staff_users')
+    .select('id, role, active')
+    .eq('auth_user_id', claimsData.claims.sub)
+    .eq('active', true)
+    .eq('role', 'admin')
+    .maybeSingle();
+
+  if (staffError || !staffRecord) {
+    redirect('/unauthorized');
+  }
+
+  const email = typeof claimsData.claims.email === 'string' ? claimsData.claims.email : 'Authenticated staff';
 
   return (
     <main className="min-h-screen">
@@ -57,7 +75,7 @@ export default async function Home() {
 
           <div className="mx-auto max-w-7xl space-y-6 p-6 lg:p-8">
             <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4 text-sm text-slate-600">
-              Authentication is active. Database modules will be connected after the access-control layer is finalized.
+              Authentication and CarePlus administrator authorization are active. Database modules will be connected next.
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
