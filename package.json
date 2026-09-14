@@ -1,0 +1,11 @@
+{
+  "name": "careplus",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": ["apps/*", "packages/*"],
+  "scripts": {
+    "dev:admin": "npm --workspace @careplus/admin run dev",
+    "build:admin": "npm --workspace @careplus/admin run build",
+    "start:admin": "npm --workspace @careplus/admin run start"
+  }
+}
