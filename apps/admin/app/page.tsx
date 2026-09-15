@@ -1,5 +1,6 @@
 import { CalendarDays, ClipboardList, HeartPulse, LayoutDashboard, Settings, Stethoscope, Users } from 'lucide-react';
 import Link from 'next/link';
+import SignOutButton from './sign-out-button';
 import { redirect } from 'next/navigation';
 import { createClient } from '../lib/supabase/server';
 
@@ -12,15 +13,8 @@ const navigation = [
   ['Settings', '/settings', Settings],
 ] as const;
 
-function formatDate(date: string) {
-  return new Intl.DateTimeFormat('en-NG', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Africa/Lagos' }).format(new Date(`${date}T12:00:00+01:00`));
-}
-function formatTime(time: string) {
-  const [hours, minutes] = time.split(':').map(Number);
-  const suffix = hours >= 12 ? 'PM' : 'AM';
-  const hour = hours % 12 || 12;
-  return `${hour}:${String(minutes).padStart(2, '0')} ${suffix}`;
-}
+function formatDate(date: string) { return new Intl.DateTimeFormat('en-NG', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Africa/Lagos' }).format(new Date(`${date}T12:00:00+01:00`)); }
+function formatTime(time: string) { const [hours, minutes] = time.split(':').map(Number); const suffix = hours >= 12 ? 'PM' : 'AM'; const hour = hours % 12 || 12; return `${hour}:${String(minutes).padStart(2, '0')} ${suffix}`; }
 export const dynamic = 'force-dynamic';
 
 export default async function Home() {
@@ -51,7 +45,7 @@ export default async function Home() {
   const stats = [["Today's Appointments", appointmentsCount.count ?? 0, CalendarDays], ['Total Patients', patientsCount.count ?? 0, Users], ['Active Doctors', doctorsCount.count ?? 0, Stethoscope], ['Pending Notifications', notificationsCount.count ?? 0, ClipboardList]] as const;
   return (
     <main className="min-h-screen"><div className="flex min-h-screen">
-      <aside className="hidden w-64 border-r border-[var(--border)] bg-white lg:flex lg:flex-col"><div className="flex items-center gap-3 p-6"><div className="grid h-10 w-10 place-items-center rounded-xl bg-slate-900 text-white"><HeartPulse size={22} /></div><div><b>CarePlus</b><p className="text-xs text-slate-500">Medical Centre</p></div></div><nav className="flex-1 px-3">{navigation.map(([label, href, Icon]) => href === '#' ? <div key={label} className="mb-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-400"><Icon size={18} />{label}</div> : <Link key={label} href={href} className={`mb-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm ${label === 'Dashboard' ? 'bg-slate-100 font-medium' : 'text-slate-600'}`}><Icon size={18} />{label}</Link>)}</nav><div className="border-t border-[var(--border)] p-5 text-xs text-slate-500">CarePlus Administration</div></aside>
+      <aside className="hidden w-64 border-r border-[var(--border)] bg-white lg:flex lg:flex-col"><div className="flex items-center gap-3 p-6"><div className="grid h-10 w-10 place-items-center rounded-xl bg-slate-900 text-white"><HeartPulse size={22} /></div><div><b>CarePlus</b><p className="text-xs text-slate-500">Medical Centre</p></div></div><nav className="flex-1 px-3">{navigation.map(([label, href, Icon]) => <Link key={label} href={href} className={`mb-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm ${label === 'Dashboard' ? 'bg-slate-100 font-medium' : 'text-slate-600'}`}><Icon size={18} />{label}</Link>)}</nav><div className="border-t border-[var(--border)] p-3"><SignOutButton /></div><div className="border-t border-[var(--border)] p-5 text-xs text-slate-500">CarePlus Administration</div></aside>
       <section className="flex-1"><header className="border-b border-[var(--border)] bg-white px-6 py-5 lg:px-8"><div className="mx-auto flex max-w-7xl items-center justify-between gap-6"><div><p className="text-sm text-slate-500">CarePlus Medical Centre</p><h1 className="mt-1 text-2xl font-semibold">Dashboard</h1><p className="mt-1 text-sm text-slate-500">Overview of centre activity.</p></div><div className="hidden text-right sm:block"><p className="text-xs text-slate-500">Signed in as</p><p className="mt-1 text-sm font-medium text-slate-800">{email}</p></div></div></header>
         <div className="mx-auto max-w-7xl space-y-6 p-6 lg:p-8"><div className="rounded-2xl border border-slate-200 bg-white px-5 py-4 text-sm text-slate-600">Authentication, administrator authorization, and protected database access are active.</div>{dataErrors.length > 0 && <div className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-800">Some dashboard data could not be loaded. The protected connection is active, but one or more database queries returned an error.</div>}
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{stats.map(([label, value, Icon]) => <div key={label} className="rounded-2xl border border-[var(--border)] bg-white p-5"><div className="flex justify-between text-sm text-slate-500"><span>{label}</span><Icon size={19} /></div><p className="mt-4 text-3xl font-semibold">{value}</p></div>)}</div>
