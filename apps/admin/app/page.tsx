@@ -2,7 +2,6 @@ import { CalendarDays, ClipboardList, HeartPulse, LayoutDashboard, Settings, Ste
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import SignOutButton from './sign-out-button';
-import ThemeToggle from './theme-toggle';
 import { createClient } from '../lib/supabase/server';
 
 const navigation = [
