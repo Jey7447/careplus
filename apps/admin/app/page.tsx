@@ -9,7 +9,7 @@ const navigation = [
   ['Patients', '/patients', Users],
   ['Doctors', '/doctors', Stethoscope],
   ['Notifications', '/notifications', ClipboardList],
-  ['Settings', '#', Settings],
+  ['Settings', '/settings', Settings],
 ] as const;
 
 function formatDate(date: string) {
