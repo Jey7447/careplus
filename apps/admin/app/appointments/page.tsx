@@ -7,8 +7,8 @@ const navigation = [
   ['Dashboard', '/', LayoutDashboard],
   ['Appointments', '/appointments', CalendarDays],
   ['Patients', '/patients', Users],
-  ['Doctors', '#', Stethoscope],
-  ['Notifications', '#', ClipboardList],
+  ['Doctors', '/doctors', Stethoscope],
+  ['Notifications', '/notifications', ClipboardList],
   ['Settings', '#', Settings],
 ] as const;
 
