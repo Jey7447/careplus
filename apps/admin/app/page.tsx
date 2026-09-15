@@ -2,6 +2,7 @@ import { CalendarDays, ClipboardList, HeartPulse, LayoutDashboard, Settings, Ste
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import SignOutButton from './sign-out-button';
+import ThemeToggle from './theme-toggle';
 import { createClient } from '../lib/supabase/server';
 
 const navigation = [
@@ -13,15 +14,8 @@ const navigation = [
   { label: 'Settings', href: '/settings', Icon: Settings },
 ] as const;
 
-function formatDate(date: string) {
-  return new Intl.DateTimeFormat('en-NG', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Africa/Lagos' }).format(new Date(`${date}T12:00:00+01:00`));
-}
-function formatTime(time: string) {
-  const [hours, minutes] = time.split(':').map(Number);
-  const suffix = hours >= 12 ? 'PM' : 'AM';
-  const hour = hours % 12 || 12;
-  return `${hour}:${String(minutes).padStart(2, '0')} ${suffix}`;
-}
+function formatDate(date: string) { return new Intl.DateTimeFormat('en-NG', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Africa/Lagos' }).format(new Date(`${date}T12:00:00+01:00`)); }
+function formatTime(time: string) { const [hours, minutes] = time.split(':').map(Number); const suffix = hours >= 12 ? 'PM' : 'AM'; const hour = hours % 12 || 12; return `${hour}:${String(minutes).padStart(2, '0')} ${suffix}`; }
 export const dynamic = 'force-dynamic';
 
 export default async function Home() {
@@ -54,7 +48,7 @@ export default async function Home() {
     <main className="min-h-screen"><div className="flex min-h-screen">
       <aside className="hidden w-64 border-r border-[var(--border)] bg-white lg:flex lg:flex-col">
         <div className="flex items-center gap-3 p-6"><div className="grid h-10 w-10 place-items-center rounded-xl bg-slate-900 text-white"><HeartPulse size={22} /></div><div><b>CarePlus</b><p className="text-xs text-slate-500">Medical Centre</p></div></div>
-        <nav className="flex-1 px-3">{navigation.map(({ label, href, Icon }) => <Link key={label} href={href} className={`mb-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm outline-none focus:outline-none focus-visible:outline-none ${label === 'Dashboard' ? 'bg-slate-100 font-medium text-slate-900' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}><Icon size={18} />{label}</Link>)}</nav>
+        <nav className="flex-1 px-3">{navigation.map(({ label, href, Icon }) => label === 'Dashboard' ? <a key={label} href={href} className="mb-1 flex items-center gap-3 rounded-xl bg-slate-100 px-3 py-2.5 text-sm font-medium text-slate-900 outline-none focus:outline-none focus-visible:outline-none"><Icon size={18} />{label}</a> : <Link key={label} href={href} className="mb-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-600 outline-none hover:bg-slate-50 hover:text-slate-900 focus:outline-none focus-visible:outline-none"><Icon size={18} />{label}</Link>)}</nav>
         <div className="border-t border-[var(--border)] p-3"><SignOutButton /><p className="px-3 pt-2 text-xs text-slate-500">CarePlus Administration</p></div>
       </aside>
       <section className="flex-1"><header className="border-b border-[var(--border)] bg-white px-6 py-5 lg:px-8"><div className="mx-auto flex max-w-7xl items-center justify-between gap-6"><div><p className="text-sm text-slate-500">CarePlus Medical Centre</p><h1 className="mt-1 text-2xl font-semibold">Dashboard</h1><p className="mt-1 text-sm text-slate-500">Overview of centre activity.</p></div><div className="hidden text-right sm:block"><p className="text-xs text-slate-500">Signed in as</p><p className="mt-1 text-sm font-medium text-slate-800">{email}</p></div></div></header>
