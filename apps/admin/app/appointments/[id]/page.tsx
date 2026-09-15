@@ -2,9 +2,9 @@ import {
   ArrowLeft,
   CalendarDays,
   ClipboardList,
-  Clock3,
   HeartPulse,
-  LayoutDashboard,
+  History,
+  Clock3,
   Mail,
   MapPin,
   Phone,
@@ -19,7 +19,7 @@ import AppointmentActions from '../appointment-actions';
 import { createClient } from '../../../lib/supabase/server';
 
 const navigation = [
-  ['Dashboard', '/', LayoutDashboard],
+  ['Dashboard', '/', HeartPulse],
   ['Appointments', '/appointments', CalendarDays],
   ['Patients', '/patients', Users],
   ['Doctors', '/doctors', Stethoscope],
@@ -28,6 +28,14 @@ const navigation = [
 ] as const;
 
 type PageProps = { params: Promise<{ id: string }> };
+
+type AuditRecord = {
+  audit_id: number;
+  action: string;
+  old_values: Record<string, unknown> | null;
+  new_values: Record<string, unknown> | null;
+  changed_at: string;
+};
 
 function formatDate(date: string) {
   return new Intl.DateTimeFormat('en-NG', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric', timeZone: 'Africa/Lagos' }).format(new Date(`${date}T12:00:00+01:00`));
@@ -50,6 +58,16 @@ function statusClass(status: string) {
   return 'bg-orange-50 text-orange-700';
 }
 
+function activityText(item: AuditRecord) {
+  const oldStatus = typeof item.old_values?.appointment_status === 'string' ? item.old_values.appointment_status : null;
+  const newStatus = typeof item.new_values?.appointment_status === 'string' ? item.new_values.appointment_status : null;
+
+  if (item.action === 'INSERT') return { title: 'Appointment created', detail: newStatus ? `Initial status: ${newStatus}` : 'Appointment record created.' };
+  if (item.action === 'DELETE') return { title: 'Appointment deleted', detail: 'The appointment record was deleted.' };
+  if (oldStatus && newStatus && oldStatus !== newStatus) return { title: 'Appointment status changed', detail: `${oldStatus} → ${newStatus}` };
+  return { title: 'Appointment updated', detail: 'Appointment information was updated.' };
+}
+
 export const dynamic = 'force-dynamic';
 
 export default async function AppointmentDetailsPage({ params }: PageProps) {
@@ -67,17 +85,19 @@ export default async function AppointmentDetailsPage({ params }: PageProps) {
   const { data: appointment, error: appointmentError } = await supabase.from('appointments').select('appointment_id, appointment_date, appointment_time, appointment_type, appointment_status, reason_for_visit, notes, created_at, patient_id, doctor_id, branch_id').eq('appointment_id', appointmentId).maybeSingle();
   if (appointmentError || !appointment) notFound();
 
-  const [{ data: patient }, { data: doctor }, { data: branch }, { data: notifications }] = await Promise.all([
+  const [{ data: patient }, { data: doctor }, { data: branch }, { data: notifications }, { data: auditLogs }] = await Promise.all([
     supabase.from('patients').select('patient_id, first_name, last_name, phone_number, email, address').eq('patient_id', appointment.patient_id).maybeSingle(),
     supabase.from('doctors').select('doctor_id, first_name, last_name, specialty, phone, email, active').eq('doctor_id', appointment.doctor_id).maybeSingle(),
     supabase.from('branches').select('*').eq('branch_id', appointment.branch_id).maybeSingle(),
     supabase.from('notifications').select('notification_id, channel, notification_type, status, sent_at, delivered_at, recipient_contact').eq('appointment_id', appointment.appointment_id).order('notification_id', { ascending: false }),
+    supabase.from('audit_logs').select('audit_id, action, old_values, new_values, changed_at').eq('table_name', 'appointments').eq('record_id', appointment.appointment_id).order('changed_at', { ascending: false }).limit(50),
   ]);
 
   const email = typeof claimsData.claims.email === 'string' ? claimsData.claims.email : 'Authenticated staff';
   const patientName = patient ? `${patient.first_name} ${patient.last_name}` : 'Unknown patient';
   const doctorName = doctor ? `Dr. ${doctor.first_name} ${doctor.last_name}` : 'Unknown doctor';
   const branchName = branch ? ((branch as Record<string, unknown>).name ?? (branch as Record<string, unknown>).branch_name ?? 'CarePlus branch') : 'Branch not available';
+  const activities = (auditLogs ?? []) as AuditRecord[];
 
   return (
     <main className="min-h-screen"><div className="flex min-h-screen">
@@ -106,6 +126,18 @@ export default async function AppointmentDetailsPage({ params }: PageProps) {
 
             <section className="rounded-2xl border border-[var(--border)] bg-white p-6"><div className="flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-xl bg-slate-100"><ClipboardList size={19} /></div><div><h2 className="font-semibold">Notification history</h2><p className="text-sm text-slate-500">Notifications associated with this appointment</p></div></div><div className="mt-6 space-y-3">{(notifications ?? []).length === 0 ? <p className="rounded-xl bg-slate-50 p-5 text-sm text-slate-500">No notifications recorded for this appointment.</p> : (notifications ?? []).map((notification) => <div key={notification.notification_id} className="rounded-xl border border-slate-200 p-4"><div className="flex items-start justify-between gap-4"><div><p className="text-sm font-medium text-slate-900">{notification.notification_type ?? 'Notification'}</p><p className="mt-1 text-xs text-slate-500">{notification.channel} · {notification.recipient_contact ?? 'No recipient contact'}</p></div><span className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusClass(notification.status)}`}>{notification.status}</span></div><div className="mt-3 text-xs text-slate-500">{notification.sent_at ? `Sent ${new Date(notification.sent_at).toLocaleString('en-NG', { timeZone: 'Africa/Lagos' })}` : 'Not sent'}{notification.delivered_at ? ` · Delivered ${new Date(notification.delivered_at).toLocaleString('en-NG', { timeZone: 'Africa/Lagos' })}` : ''}</div></div>)}</div></section>
           </div>
+
+          <section className="rounded-2xl border border-[var(--border)] bg-white p-6">
+            <div className="flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-xl bg-slate-100"><History size={19} /></div><div><h2 className="font-semibold">Appointment activity</h2><p className="text-sm text-slate-500">Recorded changes to this appointment.</p></div></div>
+            <div className="mt-6 space-y-3">
+              {activities.length === 0 ? <p className="rounded-xl bg-slate-50 p-5 text-sm text-slate-500">No activity has been recorded for this appointment.</p> : activities.map((item) => {
+                const activity = activityText(item);
+                const oldStatus = typeof item.old_values?.appointment_status === 'string' ? item.old_values.appointment_status : null;
+                const newStatus = typeof item.new_values?.appointment_status === 'string' ? item.new_values.appointment_status : null;
+                return <div key={item.audit_id} className="rounded-xl border border-slate-200 p-4"><div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"><div><p className="text-sm font-medium text-slate-900">{activity.title}</p><p className="mt-1 text-sm text-slate-500">{activity.detail}</p>{oldStatus && newStatus && oldStatus !== newStatus && <div className="mt-3 flex flex-wrap items-center gap-2"><span className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusClass(oldStatus)}`}>{oldStatus}</span><span className="text-xs text-slate-400">→</span><span className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusClass(newStatus)}`}>{newStatus}</span></div>}</div><time className="shrink-0 text-xs text-slate-500">{new Date(item.changed_at).toLocaleString('en-NG', { timeZone: 'Africa/Lagos' })}</time></div></div>;
+              })}
+            </div>
+          </section>
 
           <section className="rounded-2xl border border-[var(--border)] bg-white p-6"><h2 className="font-semibold">Record metadata</h2><div className="mt-5 grid gap-4 sm:grid-cols-2 text-sm"><div><p className="text-xs text-slate-500">Created</p><p className="mt-1 text-slate-800">{new Date(appointment.created_at).toLocaleString('en-NG', { timeZone: 'Africa/Lagos' })}</p></div><div><p className="text-xs text-slate-500">Appointment ID</p><p className="mt-1 text-slate-800">#{appointment.appointment_id}</p></div></div></section>
         </div>
