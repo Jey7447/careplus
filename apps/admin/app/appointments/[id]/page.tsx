@@ -15,29 +15,22 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
+import AppointmentActions from '../appointment-actions';
 import { createClient } from '../../../lib/supabase/server';
 
 const navigation = [
   ['Dashboard', '/', LayoutDashboard],
   ['Appointments', '/appointments', CalendarDays],
-  ['Patients', '#', Users],
-  ['Doctors', '#', Stethoscope],
-  ['Notifications', '#', ClipboardList],
-  ['Settings', '#', Settings],
+  ['Patients', '/patients', Users],
+  ['Doctors', '/doctors', Stethoscope],
+  ['Notifications', '/notifications', ClipboardList],
+  ['Settings', '/settings', Settings],
 ] as const;
 
-type PageProps = {
-  params: Promise<{ id: string }>;
-};
+type PageProps = { params: Promise<{ id: string }> };
 
 function formatDate(date: string) {
-  return new Intl.DateTimeFormat('en-NG', {
-    weekday: 'long',
-    day: '2-digit',
-    month: 'long',
-    year: 'numeric',
-    timeZone: 'Africa/Lagos',
-  }).format(new Date(`${date}T12:00:00+01:00`));
+  return new Intl.DateTimeFormat('en-NG', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric', timeZone: 'Africa/Lagos' }).format(new Date(`${date}T12:00:00+01:00`));
 }
 
 function formatTime(time: string) {
@@ -62,209 +55,61 @@ export const dynamic = 'force-dynamic';
 export default async function AppointmentDetailsPage({ params }: PageProps) {
   const supabase = await createClient();
   const { data: claimsData } = await supabase.auth.getClaims();
-
   if (!claimsData?.claims?.sub) redirect('/login');
 
-  const { data: staffRecord, error: staffError } = await supabase
-    .from('careplus_staff_users')
-    .select('id, role, active')
-    .eq('auth_user_id', claimsData.claims.sub)
-    .eq('active', true)
-    .eq('role', 'admin')
-    .maybeSingle();
-
+  const { data: staffRecord, error: staffError } = await supabase.from('careplus_staff_users').select('id, role, active').eq('auth_user_id', claimsData.claims.sub).eq('active', true).eq('role', 'admin').maybeSingle();
   if (staffError || !staffRecord) redirect('/unauthorized');
 
   const { id } = await params;
   const appointmentId = Number(id);
-
   if (!Number.isSafeInteger(appointmentId) || appointmentId < 1) notFound();
 
-  const { data: appointment, error: appointmentError } = await supabase
-    .from('appointments')
-    .select('appointment_id, appointment_date, appointment_time, appointment_type, appointment_status, reason_for_visit, notes, created_at, patient_id, doctor_id, branch_id')
-    .eq('appointment_id', appointmentId)
-    .maybeSingle();
-
+  const { data: appointment, error: appointmentError } = await supabase.from('appointments').select('appointment_id, appointment_date, appointment_time, appointment_type, appointment_status, reason_for_visit, notes, created_at, patient_id, doctor_id, branch_id').eq('appointment_id', appointmentId).maybeSingle();
   if (appointmentError || !appointment) notFound();
 
   const [{ data: patient }, { data: doctor }, { data: branch }, { data: notifications }] = await Promise.all([
-    supabase
-      .from('patients')
-      .select('patient_id, first_name, last_name, phone_number, email, date_of_birth, gender, address, emergency_contact_name, emergency_contact_phone')
-      .eq('patient_id', appointment.patient_id)
-      .maybeSingle(),
-    supabase
-      .from('doctors')
-      .select('doctor_id, first_name, last_name, specialty, phone, email, active')
-      .eq('doctor_id', appointment.doctor_id)
-      .maybeSingle(),
-    supabase
-      .from('branches')
-      .select('*')
-      .eq('branch_id', appointment.branch_id)
-      .maybeSingle(),
-    supabase
-      .from('notifications')
-      .select('notification_id, channel, notification_type, status, sent_at, delivered_at, recipient_contact')
-      .eq('appointment_id', appointment.appointment_id)
-      .order('notification_id', { ascending: false }),
+    supabase.from('patients').select('patient_id, first_name, last_name, phone_number, email, address').eq('patient_id', appointment.patient_id).maybeSingle(),
+    supabase.from('doctors').select('doctor_id, first_name, last_name, specialty, phone, email, active').eq('doctor_id', appointment.doctor_id).maybeSingle(),
+    supabase.from('branches').select('*').eq('branch_id', appointment.branch_id).maybeSingle(),
+    supabase.from('notifications').select('notification_id, channel, notification_type, status, sent_at, delivered_at, recipient_contact').eq('appointment_id', appointment.appointment_id).order('notification_id', { ascending: false }),
   ]);
 
   const email = typeof claimsData.claims.email === 'string' ? claimsData.claims.email : 'Authenticated staff';
   const patientName = patient ? `${patient.first_name} ${patient.last_name}` : 'Unknown patient';
   const doctorName = doctor ? `Dr. ${doctor.first_name} ${doctor.last_name}` : 'Unknown doctor';
-  const branchName = branch
-    ? ((branch as Record<string, unknown>).name ?? (branch as Record<string, unknown>).branch_name ?? 'CarePlus branch')
-    : 'Branch not available';
+  const branchName = branch ? ((branch as Record<string, unknown>).name ?? (branch as Record<string, unknown>).branch_name ?? 'CarePlus branch') : 'Branch not available';
 
   return (
-    <main className="min-h-screen">
-      <div className="flex min-h-screen">
-        <aside className="hidden w-64 border-r border-[var(--border)] bg-white lg:flex lg:flex-col">
-          <div className="flex items-center gap-3 p-6">
-            <div className="grid h-10 w-10 place-items-center rounded-xl bg-slate-900 text-white"><HeartPulse size={22} /></div>
-            <div><b>CarePlus</b><p className="text-xs text-slate-500">Medical Centre</p></div>
+    <main className="min-h-screen"><div className="flex min-h-screen">
+      <aside className="hidden w-64 border-r border-[var(--border)] bg-white lg:flex lg:flex-col">
+        <div className="flex items-center gap-3 p-6"><div className="grid h-10 w-10 place-items-center rounded-xl bg-slate-900 text-white"><HeartPulse size={22} /></div><div><b>CarePlus</b><p className="text-xs text-slate-500">Medical Centre</p></div></div>
+        <nav className="flex-1 px-3">{navigation.map(([label, href, Icon]) => <Link key={label} href={href} className={`mb-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm ${label === 'Appointments' ? 'bg-slate-100 font-medium' : 'text-slate-600'}`}><Icon size={18} />{label}</Link>)}</nav>
+        <div className="border-t border-[var(--border)] p-5 text-xs text-slate-500">CarePlus Administration</div>
+      </aside>
+
+      <section className="flex-1">
+        <header className="border-b border-[var(--border)] bg-white px-6 py-5 lg:px-8"><div className="mx-auto flex max-w-7xl items-center justify-between gap-6"><div><Link href="/appointments" className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-slate-900 outline-none focus:outline-none focus-visible:outline-none"><ArrowLeft size={16} /> Back to appointments</Link><p className="mt-4 text-sm text-slate-500">CarePlus Medical Centre</p><h1 className="mt-1 text-2xl font-semibold">Appointment #{appointment.appointment_id}</h1><p className="mt-1 text-sm text-slate-500">Review appointment and patient information.</p></div><div className="hidden text-right sm:block"><p className="text-xs text-slate-500">Signed in as</p><p className="mt-1 text-sm font-medium text-slate-800">{email}</p></div></div></header>
+
+        <div className="mx-auto max-w-7xl space-y-6 p-6 lg:p-8">
+          <section className="rounded-2xl border border-[var(--border)] bg-white p-6"><div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between"><div><p className="text-sm text-slate-500">Appointment status</p><div className="mt-2 flex flex-wrap items-center gap-3"><h2 className="text-xl font-semibold text-slate-900">{patientName}</h2><span className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusClass(appointment.appointment_status)}`}>{appointment.appointment_status}</span></div><p className="mt-1 text-sm text-slate-500">{appointment.appointment_type}</p></div><div className="rounded-xl bg-slate-50 px-4 py-3 text-left md:text-right"><p className="text-xs text-slate-500">Appointment date & time</p><p className="mt-1 text-sm font-medium text-slate-900">{formatDate(appointment.appointment_date)}</p><p className="mt-1 text-sm text-slate-600">{formatTime(appointment.appointment_time)} · Africa/Lagos</p></div></div></section>
+
+          <AppointmentActions appointmentId={appointment.appointment_id} currentStatus={appointment.appointment_status} />
+
+          <div className="grid gap-6 xl:grid-cols-2">
+            <section className="rounded-2xl border border-[var(--border)] bg-white p-6"><div className="flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-xl bg-slate-100"><UserRound size={19} /></div><div><h2 className="font-semibold">Patient information</h2><p className="text-sm text-slate-500">Registered patient details</p></div></div><div className="mt-6 grid gap-5 sm:grid-cols-2"><div><p className="text-xs text-slate-500">Full name</p><p className="mt-1 text-sm font-medium">{patientName}</p></div><div><p className="text-xs text-slate-500">Patient ID</p><p className="mt-1 text-sm font-medium">#{patient?.patient_id ?? appointment.patient_id}</p></div><div><p className="text-xs text-slate-500">Phone</p><p className="mt-1 flex items-center gap-2 text-sm"><Phone size={14} />{patient?.phone_number ?? 'Not recorded'}</p></div><div><p className="text-xs text-slate-500">Email</p><p className="mt-1 flex items-center gap-2 break-all text-sm"><Mail size={14} />{patient?.email ?? 'Not recorded'}</p></div><div className="sm:col-span-2"><p className="text-xs text-slate-500">Address</p><p className="mt-1 flex items-start gap-2 text-sm"><MapPin size={14} className="mt-0.5 shrink-0" />{patient?.address ?? 'Not recorded'}</p></div><div className="sm:col-span-2"><Link href={`/patients/${patient?.patient_id ?? appointment.patient_id}`} className="text-sm font-medium text-slate-700 hover:text-slate-900 outline-none focus:outline-none focus-visible:outline-none">View full patient record →</Link></div></div></section>
+
+            <section className="rounded-2xl border border-[var(--border)] bg-white p-6"><div className="flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-xl bg-slate-100"><Stethoscope size={19} /></div><div><h2 className="font-semibold">Doctor information</h2><p className="text-sm text-slate-500">Assigned care provider</p></div></div><div className="mt-6 grid gap-5 sm:grid-cols-2"><div><p className="text-xs text-slate-500">Doctor</p><p className="mt-1 text-sm font-medium">{doctorName}</p></div><div><p className="text-xs text-slate-500">Specialty</p><p className="mt-1 text-sm font-medium">{doctor?.specialty ?? 'Not recorded'}</p></div><div><p className="text-xs text-slate-500">Phone</p><p className="mt-1 flex items-center gap-2 text-sm"><Phone size={14} />{doctor?.phone ?? 'Not recorded'}</p></div><div><p className="text-xs text-slate-500">Email</p><p className="mt-1 flex items-center gap-2 break-all text-sm"><Mail size={14} />{doctor?.email ?? 'Not recorded'}</p></div><div><p className="text-xs text-slate-500">Doctor status</p><p className="mt-1 text-sm">{doctor?.active ? 'Active' : 'Inactive'}</p></div><div className="sm:col-span-2"><Link href={`/doctors/${doctor?.doctor_id ?? appointment.doctor_id}`} className="text-sm font-medium text-slate-700 hover:text-slate-900 outline-none focus:outline-none focus-visible:outline-none">View doctor record →</Link></div></div></section>
           </div>
-          <nav className="flex-1 px-3">
-            {navigation.map(([label, href, Icon]) => (
-              href === '#' ? (
-                <div key={label} className="mb-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-400">
-                  <Icon size={18} />{label}
-                </div>
-              ) : (
-                <Link key={label} href={href} className={`mb-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm ${label === 'Appointments' ? 'bg-slate-100 font-medium' : 'text-slate-600'}`}>
-                  <Icon size={18} />{label}
-                </Link>
-              )
-            ))}
-          </nav>
-          <div className="border-t border-[var(--border)] p-5 text-xs text-slate-500">CarePlus Administration</div>
-        </aside>
 
-        <section className="flex-1">
-          <header className="border-b border-[var(--border)] bg-white px-6 py-5 lg:px-8">
-            <div className="mx-auto flex max-w-7xl items-center justify-between gap-6">
-              <div>
-                <Link href="/appointments" className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-slate-900">
-                  <ArrowLeft size={16} /> Back to appointments
-                </Link>
-                <p className="mt-4 text-sm text-slate-500">CarePlus Medical Centre</p>
-                <h1 className="mt-1 text-2xl font-semibold">Appointment #{appointment.appointment_id}</h1>
-                <p className="mt-1 text-sm text-slate-500">Review appointment and patient information.</p>
-              </div>
-              <div className="hidden text-right sm:block">
-                <p className="text-xs text-slate-500">Signed in as</p>
-                <p className="mt-1 text-sm font-medium text-slate-800">{email}</p>
-              </div>
-            </div>
-          </header>
+          <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+            <section className="rounded-2xl border border-[var(--border)] bg-white p-6"><div className="flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-xl bg-slate-100"><CalendarDays size={19} /></div><div><h2 className="font-semibold">Appointment information</h2><p className="text-sm text-slate-500">Scheduling and clinical context</p></div></div><div className="mt-6 grid gap-5 sm:grid-cols-2"><div><p className="text-xs text-slate-500">Date</p><p className="mt-1 flex items-center gap-2 text-sm font-medium"><CalendarDays size={14} />{formatDate(appointment.appointment_date)}</p></div><div><p className="text-xs text-slate-500">Time</p><p className="mt-1 flex items-center gap-2 text-sm font-medium"><Clock3 size={14} />{formatTime(appointment.appointment_time)}</p></div><div><p className="text-xs text-slate-500">Appointment type</p><p className="mt-1 text-sm font-medium">{appointment.appointment_type}</p></div><div><p className="text-xs text-slate-500">Branch</p><p className="mt-1 flex items-center gap-2 text-sm font-medium"><MapPin size={14} />{String(branchName)}</p></div><div className="sm:col-span-2"><p className="text-xs text-slate-500">Reason for visit</p><p className="mt-1 text-sm leading-6">{appointment.reason_for_visit ?? 'No reason recorded.'}</p></div><div className="sm:col-span-2"><p className="text-xs text-slate-500">Notes</p><p className="mt-1 text-sm leading-6">{appointment.notes ?? 'No notes recorded.'}</p></div></div></section>
 
-          <div className="mx-auto max-w-7xl space-y-6 p-6 lg:p-8">
-            <section className="rounded-2xl border border-[var(--border)] bg-white p-6">
-              <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
-                <div>
-                  <p className="text-sm text-slate-500">Appointment status</p>
-                  <div className="mt-2 flex items-center gap-3">
-                    <h2 className="text-xl font-semibold text-slate-900">{patientName}</h2>
-                    <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusClass(appointment.appointment_status)}`}>{appointment.appointment_status}</span>
-                  </div>
-                  <p className="mt-1 text-sm text-slate-500">{appointment.appointment_type}</p>
-                </div>
-                <div className="rounded-xl bg-slate-50 px-4 py-3 text-left md:text-right">
-                  <p className="text-xs text-slate-500">Appointment date & time</p>
-                  <p className="mt-1 text-sm font-medium text-slate-900">{formatDate(appointment.appointment_date)}</p>
-                  <p className="mt-1 text-sm text-slate-600">{formatTime(appointment.appointment_time)} · Africa/Lagos</p>
-                </div>
-              </div>
-            </section>
-
-            <div className="grid gap-6 xl:grid-cols-2">
-              <section className="rounded-2xl border border-[var(--border)] bg-white p-6">
-                <div className="flex items-center gap-3">
-                  <div className="grid h-10 w-10 place-items-center rounded-xl bg-slate-100"><UserRound size={19} /></div>
-                  <div><h2 className="font-semibold">Patient information</h2><p className="text-sm text-slate-500">Registered patient details</p></div>
-                </div>
-                <div className="mt-6 grid gap-5 sm:grid-cols-2">
-                  <div><p className="text-xs text-slate-500">Full name</p><p className="mt-1 text-sm font-medium">{patientName}</p></div>
-                  <div><p className="text-xs text-slate-500">Patient ID</p><p className="mt-1 text-sm font-medium">#{patient?.patient_id ?? appointment.patient_id}</p></div>
-                  <div><p className="text-xs text-slate-500">Phone</p><p className="mt-1 flex items-center gap-2 text-sm"><Phone size={14} />{patient?.phone_number ?? 'Not recorded'}</p></div>
-                  <div><p className="text-xs text-slate-500">Email</p><p className="mt-1 flex items-center gap-2 break-all text-sm"><Mail size={14} />{patient?.email ?? 'Not recorded'}</p></div>
-                  <div className="sm:col-span-2"><p className="text-xs text-slate-500">Address</p><p className="mt-1 flex items-start gap-2 text-sm"><MapPin size={14} className="mt-0.5 shrink-0" />{patient?.address ?? 'Not recorded'}</p></div>
-                </div>
-              </section>
-
-              <section className="rounded-2xl border border-[var(--border)] bg-white p-6">
-                <div className="flex items-center gap-3">
-                  <div className="grid h-10 w-10 place-items-center rounded-xl bg-slate-100"><Stethoscope size={19} /></div>
-                  <div><h2 className="font-semibold">Doctor information</h2><p className="text-sm text-slate-500">Assigned care provider</p></div>
-                </div>
-                <div className="mt-6 grid gap-5 sm:grid-cols-2">
-                  <div><p className="text-xs text-slate-500">Doctor</p><p className="mt-1 text-sm font-medium">{doctorName}</p></div>
-                  <div><p className="text-xs text-slate-500">Specialty</p><p className="mt-1 text-sm font-medium">{doctor?.specialty ?? 'Not recorded'}</p></div>
-                  <div><p className="text-xs text-slate-500">Phone</p><p className="mt-1 flex items-center gap-2 text-sm"><Phone size={14} />{doctor?.phone ?? 'Not recorded'}</p></div>
-                  <div><p className="text-xs text-slate-500">Email</p><p className="mt-1 flex items-center gap-2 break-all text-sm"><Mail size={14} />{doctor?.email ?? 'Not recorded'}</p></div>
-                  <div><p className="text-xs text-slate-500">Doctor status</p><p className="mt-1 text-sm">{doctor?.active ? 'Active' : 'Inactive'}</p></div>
-                </div>
-              </section>
-            </div>
-
-            <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-              <section className="rounded-2xl border border-[var(--border)] bg-white p-6">
-                <div className="flex items-center gap-3">
-                  <div className="grid h-10 w-10 place-items-center rounded-xl bg-slate-100"><CalendarDays size={19} /></div>
-                  <div><h2 className="font-semibold">Appointment information</h2><p className="text-sm text-slate-500">Scheduling and clinical context</p></div>
-                </div>
-                <div className="mt-6 grid gap-5 sm:grid-cols-2">
-                  <div><p className="text-xs text-slate-500">Date</p><p className="mt-1 flex items-center gap-2 text-sm font-medium"><CalendarDays size={14} />{formatDate(appointment.appointment_date)}</p></div>
-                  <div><p className="text-xs text-slate-500">Time</p><p className="mt-1 flex items-center gap-2 text-sm font-medium"><Clock3 size={14} />{formatTime(appointment.appointment_time)}</p></div>
-                  <div><p className="text-xs text-slate-500">Appointment type</p><p className="mt-1 text-sm font-medium">{appointment.appointment_type}</p></div>
-                  <div><p className="text-xs text-slate-500">Branch</p><p className="mt-1 flex items-center gap-2 text-sm font-medium"><MapPin size={14} />{String(branchName)}</p></div>
-                  <div className="sm:col-span-2"><p className="text-xs text-slate-500">Reason for visit</p><p className="mt-1 text-sm leading-6">{appointment.reason_for_visit ?? 'No reason recorded.'}</p></div>
-                  <div className="sm:col-span-2"><p className="text-xs text-slate-500">Notes</p><p className="mt-1 text-sm leading-6">{appointment.notes ?? 'No notes recorded.'}</p></div>
-                </div>
-              </section>
-
-              <section className="rounded-2xl border border-[var(--border)] bg-white p-6">
-                <div className="flex items-center gap-3">
-                  <div className="grid h-10 w-10 place-items-center rounded-xl bg-slate-100"><ClipboardList size={19} /></div>
-                  <div><h2 className="font-semibold">Notification history</h2><p className="text-sm text-slate-500">Notifications associated with this appointment</p></div>
-                </div>
-                <div className="mt-6 space-y-3">
-                  {(notifications ?? []).length === 0 ? (
-                    <p className="rounded-xl bg-slate-50 p-5 text-sm text-slate-500">No notifications recorded for this appointment.</p>
-                  ) : (
-                    (notifications ?? []).map((notification) => (
-                      <div key={notification.notification_id} className="rounded-xl border border-slate-200 p-4">
-                        <div className="flex items-start justify-between gap-4">
-                          <div>
-                            <p className="text-sm font-medium text-slate-900">{notification.notification_type ?? 'Notification'}</p>
-                            <p className="mt-1 text-xs text-slate-500">{notification.channel} · {notification.recipient_contact ?? 'No recipient contact'}</p>
-                          </div>
-                          <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusClass(notification.status)}`}>{notification.status}</span>
-                        </div>
-                        <div className="mt-3 text-xs text-slate-500">
-                          {notification.sent_at ? `Sent ${new Date(notification.sent_at).toLocaleString('en-NG', { timeZone: 'Africa/Lagos' })}` : 'Not sent'}
-                          {notification.delivered_at ? ` · Delivered ${new Date(notification.delivered_at).toLocaleString('en-NG', { timeZone: 'Africa/Lagos' })}` : ''}
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </section>
-            </div>
-
-            <section className="rounded-2xl border border-[var(--border)] bg-white p-6">
-              <h2 className="font-semibold">Record metadata</h2>
-              <div className="mt-5 grid gap-5 sm:grid-cols-3">
-                <div><p className="text-xs text-slate-500">Appointment ID</p><p className="mt-1 text-sm font-medium">#{appointment.appointment_id}</p></div>
-                <div><p className="text-xs text-slate-500">Patient ID</p><p className="mt-1 text-sm font-medium">#{appointment.patient_id}</p></div>
-                <div><p className="text-xs text-slate-500">Created</p><p className="mt-1 text-sm font-medium">{new Date(appointment.created_at).toLocaleString('en-NG', { timeZone: 'Africa/Lagos' })}</p></div>
-              </div>
-            </section>
+            <section className="rounded-2xl border border-[var(--border)] bg-white p-6"><div className="flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-xl bg-slate-100"><ClipboardList size={19} /></div><div><h2 className="font-semibold">Notification history</h2><p className="text-sm text-slate-500">Notifications associated with this appointment</p></div></div><div className="mt-6 space-y-3">{(notifications ?? []).length === 0 ? <p className="rounded-xl bg-slate-50 p-5 text-sm text-slate-500">No notifications recorded for this appointment.</p> : (notifications ?? []).map((notification) => <div key={notification.notification_id} className="rounded-xl border border-slate-200 p-4"><div className="flex items-start justify-between gap-4"><div><p className="text-sm font-medium text-slate-900">{notification.notification_type ?? 'Notification'}</p><p className="mt-1 text-xs text-slate-500">{notification.channel} · {notification.recipient_contact ?? 'No recipient contact'}</p></div><span className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusClass(notification.status)}`}>{notification.status}</span></div><div className="mt-3 text-xs text-slate-500">{notification.sent_at ? `Sent ${new Date(notification.sent_at).toLocaleString('en-NG', { timeZone: 'Africa/Lagos' })}` : 'Not sent'}{notification.delivered_at ? ` · Delivered ${new Date(notification.delivered_at).toLocaleString('en-NG', { timeZone: 'Africa/Lagos' })}` : ''}</div></div>)}</div></section>
           </div>
-        </section>
-      </div>
-    </main>
+
+          <section className="rounded-2xl border border-[var(--border)] bg-white p-6"><h2 className="font-semibold">Record metadata</h2><div className="mt-5 grid gap-4 sm:grid-cols-2 text-sm"><div><p className="text-xs text-slate-500">Created</p><p className="mt-1 text-slate-800">{new Date(appointment.created_at).toLocaleString('en-NG', { timeZone: 'Africa/Lagos' })}</p></div><div><p className="text-xs text-slate-500">Appointment ID</p><p className="mt-1 text-slate-800">#{appointment.appointment_id}</p></div></div></section>
+        </div>
+      </section>
+    </div></main>
   );
 }
