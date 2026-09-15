@@ -6,6 +6,41 @@
   --border: #e5e9f0;
 }
 
+html.dark {
+  --background: #0b1120;
+  --foreground: #e5e7eb;
+  --border: #273244;
+  color-scheme: dark;
+}
+
 * { box-sizing: border-box; }
-body { margin: 0; background: var(--background); color: var(--foreground); font-family: Arial, Helvetica, sans-serif; }
+body { margin: 0; background: var(--background); color: var(--foreground); font-family: Arial, Helvetica, sans-serif; transition: background-color 180ms ease, color 180ms ease; }
 button, input, select { font: inherit; }
+
+/* The current portal uses Tailwind utility classes directly throughout its pages.
+   These theme overrides keep the existing light design intact while providing a
+   consistent dark presentation without requiring every page to duplicate markup. */
+html.dark .bg-white { background-color: #111827 !important; }
+html.dark .bg-slate-50 { background-color: #172033 !important; }
+html.dark .bg-slate-100 { background-color: #1f2937 !important; }
+html.dark .bg-slate-900 { background-color: #f3f4f6 !important; }
+html.dark .text-slate-900 { color: #f8fafc !important; }
+html.dark .text-slate-800 { color: #e5e7eb !important; }
+html.dark .text-slate-700 { color: #cbd5e1 !important; }
+html.dark .text-slate-600 { color: #94a3b8 !important; }
+html.dark .text-slate-500 { color: #94a3b8 !important; }
+html.dark .text-slate-400 { color: #64748b !important; }
+html.dark .text-white { color: #111827 !important; }
+html.dark .border-slate-100 { border-color: #1e293b !important; }
+html.dark .border-slate-200 { border-color: #273244 !important; }
+html.dark .border-slate-300 { border-color: #334155 !important; }
+html.dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]) { border-color: #1e293b !important; }
+html.dark input,
+html.dark select,
+html.dark textarea { background-color: #111827; color: #e5e7eb; border-color: #334155; }
+html.dark input::placeholder,
+html.dark textarea::placeholder { color: #64748b; }
+html.dark .hover\:bg-slate-50:hover { background-color: #172033 !important; }
+html.dark .hover\:bg-slate-800:hover { background-color: #e5e7eb !important; }
+html.dark .hover\:bg-slate-900:hover { background-color: #e5e7eb !important; }
+html.dark .focus\:border-slate-900:focus { border-color: #94a3b8 !important; }
