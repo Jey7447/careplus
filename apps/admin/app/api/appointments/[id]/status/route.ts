@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '../../../../lib/supabase/server';
+import { createClient } from '../../../../../lib/supabase/server';
 
 const ALLOWED_STATUSES = ['Scheduled', 'Confirmed', 'Checked In', 'In Progress', 'Completed', 'Cancelled', 'No Show'] as const;
 type AppointmentStatus = (typeof ALLOWED_STATUSES)[number];
