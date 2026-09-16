@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
@@ -39,6 +40,7 @@ export default function AppointmentActions({ appointmentId, currentStatus }: Pro
   const [error, setError] = useState('');
 
   const actions = (ACTIONS as Record<string, readonly Action[]>)[currentStatus] ?? [];
+  const canReschedule = currentStatus === 'Scheduled' || currentStatus === 'Confirmed';
 
   async function handleAction(action: Action) {
     const confirmed = window.confirm(
@@ -69,20 +71,13 @@ export default function AppointmentActions({ appointmentId, currentStatus }: Pro
     }
   }
 
-  if (actions.length === 0) {
-    return (
-      <section className="rounded-2xl border border-[var(--border)] bg-white p-6">
-        <h2 className="font-semibold">Appointment actions</h2>
-        <p className="mt-2 text-sm text-slate-500">No further status actions are available for this appointment.</p>
-      </section>
-    );
-  }
-
   return (
     <section className="rounded-2xl border border-[var(--border)] bg-white p-6">
       <div>
         <h2 className="font-semibold">Appointment actions</h2>
-        <p className="mt-1 text-sm text-slate-500">Available actions for the current status: {currentStatus}.</p>
+        <p className="mt-1 text-sm text-slate-500">
+          {actions.length > 0 ? `Available actions for the current status: ${currentStatus}.` : 'No further status actions are available for this appointment.'}
+        </p>
       </div>
 
       {error && <p role="alert" className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
@@ -105,6 +100,15 @@ export default function AppointmentActions({ appointmentId, currentStatus }: Pro
             {loadingStatus === action.status ? 'Updating…' : action.label}
           </button>
         ))}
+
+        {canReschedule && (
+          <Link
+            href={`/appointments/${appointmentId}/reschedule`}
+            className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 outline-none focus:outline-none focus-visible:outline-none"
+          >
+            Reschedule appointment
+          </Link>
+        )}
       </div>
     </section>
   );
