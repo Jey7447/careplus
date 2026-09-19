@@ -2,6 +2,28 @@ import Link from 'next/link';
 import { ArrowRight, CalendarDays, ClipboardList, HeartPulse, Stethoscope, Users } from 'lucide-react';
 import { getDashboardStats } from '../../lib/dashboard';
 
+function formatDate(date: string) {
+  return new Intl.DateTimeFormat('en-NG', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'Africa/Lagos',
+  }).format(new Date(`${date}T12:00:00+01:00`));
+}
+
+function formatTime(time: string) {
+  const [hours, minutes] = time.split(':').map(Number);
+  const suffix = hours >= 12 ? 'PM' : 'AM';
+  const hour = hours % 12 || 12;
+  return `${hour}:${String(minutes).padStart(2, '0')} ${suffix}`;
+}
+
+function statusClass(status: string) {
+  return status === 'Confirmed' ? 'bg-emerald-50 text-emerald-700' : 'bg-blue-50 text-blue-700';
+}
+
+export const dynamic = 'force-dynamic';
+
 export default async function DashboardPage() {
   const stats = await getDashboardStats();
 
@@ -55,27 +77,45 @@ export default async function DashboardPage() {
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Operations</p>
-                <h2 className="mt-2 text-xl font-semibold text-slate-950 dark:text-white">CarePlus command centre</h2>
-                <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">The dashboard is connected to live Supabase data. Use the modules below to manage day-to-day clinical operations.</p>
+                <h2 className="mt-2 text-xl font-semibold text-slate-950 dark:text-white">Upcoming appointments</h2>
+                <p className="mt-2 text-sm leading-6 text-slate-500">Your next scheduled and confirmed appointments.</p>
               </div>
-              <div className="hidden h-11 w-11 shrink-0 place-items-center rounded-2xl bg-slate-950 text-white sm:grid dark:bg-white dark:text-slate-950"><HeartPulse size={20} /></div>
+              <Link href="/appointments" className="hidden items-center gap-1 text-sm font-medium text-slate-700 hover:text-slate-950 sm:flex dark:text-slate-300 dark:hover:text-white">
+                View all <ArrowRight size={15} />
+              </Link>
             </div>
-            <div className="mt-6 grid gap-3 sm:grid-cols-2">
-              {[
-                ['Appointments', 'Manage today’s schedule and appointment status.', '/appointments', CalendarDays],
-                ['Patients', 'Open patient records and contact information.', '/patients', Users],
-                ['Doctors', 'Review active providers and assignments.', '/doctors', Stethoscope],
-                ['Notifications', 'Track pending and delivered communications.', '/notifications', ClipboardList],
-              ].map(([title, description, href, Icon]) => (
-                <Link key={title as string} href={href as string} className="group rounded-2xl border border-slate-100 p-4 transition hover:border-slate-200 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800">
-                  <div className="flex items-center gap-3">
-                    <div className="grid h-9 w-9 place-items-center rounded-xl bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200"><Icon size={17} /></div>
-                    <span className="font-medium text-slate-900 dark:text-white">{title as string}</span>
-                    <ArrowRight size={15} className="ml-auto text-slate-400 transition group-hover:translate-x-1" />
+
+            <div className="mt-6 space-y-3">
+              {stats.upcomingAppointments.length > 0 ? stats.upcomingAppointments.map((appointment) => (
+                <Link
+                  key={appointment.appointment_id}
+                  href={`/appointments/${appointment.appointment_id}`}
+                  className="group flex flex-col gap-4 rounded-2xl border border-slate-100 p-4 transition hover:border-slate-200 hover:bg-slate-50 sm:flex-row sm:items-center dark:border-slate-800 dark:hover:bg-slate-800"
+                >
+                  <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200">
+                    <CalendarDays size={18} />
                   </div>
-                  <p className="mt-3 text-xs leading-5 text-slate-500">{description as string}</p>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-sm font-semibold text-slate-950 dark:text-white">Appointment #{appointment.appointment_id}</span>
+                      <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusClass(appointment.appointment_status)}`}>{appointment.appointment_status}</span>
+                    </div>
+                    <p className="mt-1 text-sm font-medium text-slate-800 dark:text-slate-200">{appointment.patient_name}</p>
+                    <p className="mt-0.5 text-xs text-slate-500">{appointment.doctor_name}</p>
+                  </div>
+                  <div className="shrink-0 sm:text-right">
+                    <p className="text-sm font-semibold text-slate-900 dark:text-white">{formatDate(appointment.appointment_date)}</p>
+                    <p className="mt-1 text-xs text-slate-500">{formatTime(appointment.appointment_time)}</p>
+                    <span className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-slate-500 group-hover:text-slate-900 dark:group-hover:text-white">Open appointment <ArrowRight size={13} /></span>
+                  </div>
                 </Link>
-              ))}
+              )) : (
+                <div className="rounded-2xl border border-dashed border-slate-200 px-5 py-10 text-center dark:border-slate-800">
+                  <CalendarDays className="mx-auto text-slate-400" size={22} />
+                  <p className="mt-3 text-sm font-medium text-slate-700 dark:text-slate-200">No upcoming appointments</p>
+                  <p className="mt-1 text-xs text-slate-500">Scheduled and confirmed appointments will appear here.</p>
+                </div>
+              )}
             </div>
           </div>
 
