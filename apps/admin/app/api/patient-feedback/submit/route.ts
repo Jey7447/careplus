@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '../../../../lib/supabase/server';
+import { createClient } from '../../../lib/supabase/server';
 
 function rating(value: unknown) {
   if (value === null || value === undefined || value === '') return null;
