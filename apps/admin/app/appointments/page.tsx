@@ -1,173 +1,33 @@
-import { CalendarDays, ClipboardList, HeartPulse, LayoutDashboard, Settings, Stethoscope, Users } from 'lucide-react';
+import { ArrowRight, CalendarDays, ClipboardList, HeartPulse, LayoutDashboard, Search, Settings, Stethoscope, Users } from 'lucide-react';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { createClient } from '../../lib/supabase/server';
 
 const navigation = [
-  ['Dashboard', '/', LayoutDashboard],
+  ['Dashboard', '/dashboard', LayoutDashboard],
   ['Appointments', '/appointments', CalendarDays],
   ['Patients', '/patients', Users],
   ['Doctors', '/doctors', Stethoscope],
   ['Notifications', '/notifications', ClipboardList],
   ['Settings', '/settings', Settings],
 ] as const;
-
 const statuses = ['All', 'Scheduled', 'Confirmed', 'Checked In', 'In Progress', 'Completed', 'Cancelled', 'No Show'] as const;
 type SearchParams = Promise<{ status?: string; search?: string }>;
-
-function formatDate(date: string) {
-  return new Intl.DateTimeFormat('en-NG', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Africa/Lagos' }).format(new Date(`${date}T12:00:00+01:00`));
-}
-
-function formatTime(time: string) {
-  const [hours, minutes] = time.split(':').map(Number);
-  const suffix = hours >= 12 ? 'PM' : 'AM';
-  const hour = hours % 12 || 12;
-  return `${hour}:${String(minutes).padStart(2, '0')} ${suffix}`;
-}
-
-function statusClass(status: string) {
-  if (status === 'Scheduled') return 'bg-blue-50 text-blue-700';
-  if (status === 'Confirmed') return 'bg-emerald-50 text-emerald-700';
-  if (status === 'Checked In') return 'bg-amber-50 text-amber-700';
-  if (status === 'In Progress') return 'bg-violet-50 text-violet-700';
-  if (status === 'Completed') return 'bg-slate-100 text-slate-700';
-  if (status === 'Cancelled') return 'bg-red-50 text-red-700';
-  return 'bg-orange-50 text-orange-700';
-}
-
 export const dynamic = 'force-dynamic';
 
+function formatDate(date: string) { return new Intl.DateTimeFormat('en-NG', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Africa/Lagos' }).format(new Date(`${date}T12:00:00+01:00`)); }
+function formatTime(time: string) { const [hours, minutes] = time.split(':').map(Number); const suffix = hours >= 12 ? 'PM' : 'AM'; const hour = hours % 12 || 12; return `${hour}:${String(minutes).padStart(2, '0')} ${suffix}`; }
+function statusClass(status: string) { if (status === 'Scheduled') return 'bg-blue-400/10 text-blue-300 border-blue-400/20'; if (status === 'Confirmed') return 'bg-emerald-400/10 text-emerald-300 border-emerald-400/20'; if (status === 'Checked In') return 'bg-amber-400/10 text-amber-300 border-amber-400/20'; if (status === 'In Progress') return 'bg-violet-400/10 text-violet-300 border-violet-400/20'; if (status === 'Completed') return 'bg-slate-400/10 text-slate-300 border-slate-400/20'; if (status === 'Cancelled') return 'bg-red-400/10 text-red-300 border-red-400/20'; return 'bg-orange-400/10 text-orange-300 border-orange-400/20'; }
+
 export default async function AppointmentsPage({ searchParams }: { searchParams: SearchParams }) {
-  const supabase = await createClient();
-  const { data: claimsData } = await supabase.auth.getClaims();
-  if (!claimsData?.claims?.sub) redirect('/login');
-
-  const { data: staffRecord, error: staffError } = await supabase
-    .from('careplus_staff_users')
-    .select('id, role, active')
-    .eq('auth_user_id', claimsData.claims.sub)
-    .eq('active', true)
-    .eq('role', 'admin')
-    .maybeSingle();
-  if (staffError || !staffRecord) redirect('/unauthorized');
-
-  const params = await searchParams;
-  const status = statuses.includes(params.status as (typeof statuses)[number]) ? params.status : 'All';
-  const search = (params.search ?? '').trim();
-
-  let query = supabase
-    .from('appointments')
-    .select('appointment_id, appointment_date, appointment_time, appointment_type, appointment_status, reason_for_visit, patient_id, doctor_id')
-    .order('appointment_date', { ascending: false })
-    .order('appointment_time', { ascending: false })
-    .limit(100);
-  if (status !== 'All') query = query.eq('appointment_status', status);
-
-  const { data: appointments, error } = await query;
-  const rows = appointments ?? [];
-  const patientIds = [...new Set(rows.map((row) => row.patient_id))];
-  const doctorIds = [...new Set(rows.map((row) => row.doctor_id))];
-
-  const [{ data: patients }, { data: doctors }] = await Promise.all([
-    patientIds.length ? supabase.from('patients').select('patient_id, first_name, last_name').in('patient_id', patientIds) : Promise.resolve({ data: [], error: null }),
-    doctorIds.length ? supabase.from('doctors').select('doctor_id, first_name, last_name, specialty').in('doctor_id', doctorIds) : Promise.resolve({ data: [], error: null }),
-  ]);
-
-  const patientMap = new Map((patients ?? []).map((patient) => [patient.patient_id, `${patient.first_name} ${patient.last_name}`]));
-  const doctorMap = new Map((doctors ?? []).map((doctor) => [doctor.doctor_id, `Dr. ${doctor.first_name} ${doctor.last_name}`]));
-  const specialtyMap = new Map((doctors ?? []).map((doctor) => [doctor.doctor_id, doctor.specialty]));
-
-  const filteredRows = search
-    ? rows.filter((row) => {
-        const patient = patientMap.get(row.patient_id) ?? '';
-        const doctor = doctorMap.get(row.doctor_id) ?? '';
-        return `${patient} ${doctor} ${row.appointment_type} ${row.reason_for_visit ?? ''}`.toLowerCase().includes(search.toLowerCase());
-      })
-    : rows;
-
-  const counts = rows.reduce<Record<string, number>>((acc, row) => {
-    acc[row.appointment_status] = (acc[row.appointment_status] ?? 0) + 1;
-    return acc;
-  }, {});
-  const email = typeof claimsData.claims.email === 'string' ? claimsData.claims.email : 'Authenticated staff';
-
-  return (
-    <main className="min-h-screen">
-      <div className="flex min-h-screen">
-        <aside className="hidden w-64 border-r border-[var(--border)] bg-white lg:flex lg:flex-col">
-          <div className="flex items-center gap-3 p-6">
-            <div className="grid h-10 w-10 place-items-center rounded-xl bg-slate-900 text-white"><HeartPulse size={22} /></div>
-            <div><b>CarePlus</b><p className="text-xs text-slate-500">Medical Centre</p></div>
-          </div>
-          <nav className="flex-1 px-3">
-            {navigation.map(([label, href, Icon]) => (
-              <Link key={label} href={href} className={`mb-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm ${label === 'Appointments' ? 'bg-slate-100 font-medium' : 'text-slate-600'}`}>
-                <Icon size={18} />{label}
-              </Link>
-            ))}
-          </nav>
-          <div className="border-t border-[var(--border)] p-5 text-xs text-slate-500">CarePlus Administration</div>
-        </aside>
-
-        <section className="flex-1">
-          <header className="border-b border-[var(--border)] bg-white px-6 py-5 lg:px-8">
-            <div className="mx-auto flex max-w-7xl items-center justify-between gap-6">
-              <div>
-                <p className="text-sm text-slate-500">CarePlus Medical Centre</p>
-                <h1 className="mt-1 text-2xl font-semibold">Appointments</h1>
-                <p className="mt-1 text-sm text-slate-500">Manage and review scheduled patient appointments.</p>
-              </div>
-              <div className="hidden text-right sm:block"><p className="text-xs text-slate-500">Signed in as</p><p className="mt-1 text-sm font-medium text-slate-800">{email}</p></div>
-            </div>
-          </header>
-
-          <div className="mx-auto max-w-7xl space-y-6 p-6 lg:p-8">
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              {[['Scheduled', counts.Scheduled ?? 0], ['Confirmed', counts.Confirmed ?? 0], ['Completed', counts.Completed ?? 0], ['Cancelled', counts.Cancelled ?? 0]].map(([label, value]) => (
-                <div key={label} className="rounded-2xl border border-[var(--border)] bg-white p-5"><p className="text-sm text-slate-500">{label}</p><p className="mt-3 text-3xl font-semibold">{value}</p></div>
-              ))}
-            </div>
-
-            <section className="rounded-2xl border border-[var(--border)] bg-white p-6">
-              <form className="grid gap-4 lg:grid-cols-[1fr_220px_auto]" method="get">
-                <label><span className="text-sm font-medium text-slate-700">Search</span><input name="search" defaultValue={search} placeholder="Patient, doctor, type or reason" className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-200" /></label>
-                <label><span className="text-sm font-medium text-slate-700">Status</span><select name="status" defaultValue={status} className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-200">{statuses.map((item) => <option key={item}>{item}</option>)}</select></label>
-                <button type="submit" className="self-end rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-slate-800">Apply filters</button>
-              </form>
-            </section>
-
-            <section className="overflow-hidden rounded-2xl border border-[var(--border)] bg-white">
-              <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5">
-                <div><h2 className="font-semibold">Appointment records</h2><p className="mt-1 text-sm text-slate-500">Showing {filteredRows.length} of up to 100 loaded appointments.</p></div>
-                {error && <span className="rounded-full bg-red-50 px-3 py-1 text-xs text-red-700">Unable to load appointments</span>}
-              </div>
-              <div className="overflow-x-auto">
-                <table className="min-w-full text-sm">
-                  <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500"><tr><th className="px-6 py-3 font-medium">Appointment</th><th className="px-6 py-3 font-medium">Patient</th><th className="px-6 py-3 font-medium">Doctor</th><th className="px-6 py-3 font-medium">Date & time</th><th className="px-6 py-3 font-medium">Type</th><th className="px-6 py-3 font-medium">Status</th></tr></thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {filteredRows.map((appointment) => {
-                      const href = `/appointments/${appointment.appointment_id}`;
-                      const linkClass = 'block px-6 py-4 outline-none focus:outline-none focus-visible:outline-none';
-                      return (
-                        <tr key={appointment.appointment_id} className="hover:bg-slate-50">
-                          <td className="p-0 whitespace-nowrap font-medium"><Link href={href} className={linkClass + ' text-slate-900'}>#{appointment.appointment_id}</Link></td>
-                          <td className="p-0"><Link href={href} className={linkClass}><p className="font-medium text-slate-900">{patientMap.get(appointment.patient_id) ?? 'Unknown patient'}</p><p className="mt-1 text-xs text-slate-500">{appointment.reason_for_visit ?? 'No reason recorded'}</p></Link></td>
-                          <td className="p-0"><Link href={href} className={linkClass}><p className="font-medium text-slate-900">{doctorMap.get(appointment.doctor_id) ?? 'Unknown doctor'}</p><p className="mt-1 text-xs text-slate-500">{specialtyMap.get(appointment.doctor_id) ?? ''}</p></Link></td>
-                          <td className="p-0 whitespace-nowrap"><Link href={href} className={linkClass}><p className="font-medium text-slate-900">{formatDate(appointment.appointment_date)}</p><p className="mt-1 text-xs text-slate-500">{formatTime(appointment.appointment_time)}</p></Link></td>
-                          <td className="p-0 whitespace-nowrap"><Link href={href} className={linkClass + ' text-slate-600'}>{appointment.appointment_type}</Link></td>
-                          <td className="p-0 whitespace-nowrap"><Link href={href} className={linkClass}><span className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusClass(appointment.appointment_status)}`}>{appointment.appointment_status}</span></Link></td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-              {filteredRows.length === 0 && <div className="p-12 text-center text-sm text-slate-500">No appointments match the current filters.</div>}
-            </section>
-          </div>
-        </section>
-      </div>
-    </main>
-  );
+  const supabase = await createClient(); const { data: claimsData } = await supabase.auth.getClaims(); if (!claimsData?.claims?.sub) redirect('/login');
+  const { data: staffRecord } = await supabase.from('careplus_staff_users').select('id, role, active').eq('auth_user_id', claimsData.claims.sub).eq('active', true).eq('role', 'admin').maybeSingle(); if (!staffRecord) redirect('/unauthorized');
+  const params = await searchParams; const status = statuses.includes(params.status as (typeof statuses)[number]) ? params.status : 'All'; const search = (params.search ?? '').trim();
+  let query = supabase.from('appointments').select('appointment_id, appointment_date, appointment_time, appointment_type, appointment_status, reason_for_visit, patient_id, doctor_id').order('appointment_date', { ascending: false }).order('appointment_time', { ascending: false }).limit(100); if (status !== 'All') query = query.eq('appointment_status', status);
+  const { data: appointments, error } = await query; const rows = appointments ?? []; const patientIds = [...new Set(rows.map((row) => row.patient_id))]; const doctorIds = [...new Set(rows.map((row) => row.doctor_id))];
+  const [{ data: patients }, { data: doctors }] = await Promise.all([patientIds.length ? supabase.from('patients').select('patient_id, first_name, last_name').in('patient_id', patientIds) : Promise.resolve({ data: [], error: null }), doctorIds.length ? supabase.from('doctors').select('doctor_id, first_name, last_name, specialty').in('doctor_id', doctorIds) : Promise.resolve({ data: [], error: null })]);
+  const patientMap = new Map((patients ?? []).map((patient) => [patient.patient_id, `${patient.first_name} ${patient.last_name}`])); const doctorMap = new Map((doctors ?? []).map((doctor) => [doctor.doctor_id, `Dr. ${doctor.first_name} ${doctor.last_name}`])); const specialtyMap = new Map((doctors ?? []).map((doctor) => [doctor.doctor_id, doctor.specialty]));
+  const filteredRows = search ? rows.filter((row) => `${patientMap.get(row.patient_id) ?? ''} ${doctorMap.get(row.doctor_id) ?? ''} ${row.appointment_type} ${row.reason_for_visit ?? ''}`.toLowerCase().includes(search.toLowerCase())) : rows;
+  const counts = rows.reduce<Record<string, number>>((acc, row) => { acc[row.appointment_status] = (acc[row.appointment_status] ?? 0) + 1; return acc; }, {}); const email = typeof claimsData.claims.email === 'string' ? claimsData.claims.email : 'Authenticated staff';
+  return <main className="min-h-screen bg-slate-100"><div className="flex min-h-screen"><aside className="hidden w-64 shrink-0 border-r border-slate-200 bg-white lg:flex lg:flex-col"><div className="flex items-center gap-3 p-6"><div className="grid h-11 w-11 place-items-center rounded-2xl bg-slate-950 text-white shadow-lg shadow-slate-900/10"><HeartPulse size={22}/></div><div><b className="text-sm text-slate-950">CarePlus</b><p className="text-xs text-slate-500">Medical Centre</p></div></div><nav className="flex-1 px-3">{navigation.map(([label, href, Icon]) => <Link key={label} href={href} className={`group mb-1 flex items-center gap-3 rounded-xl px-3 py-3 text-sm transition-all ${label === 'Appointments' ? 'bg-slate-950 text-white shadow-lg shadow-slate-900/10' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950'}`}><Icon size={18}/><span>{label}</span>{label === 'Appointments' && <ArrowRight size={15} className="ml-auto"/>}</Link>)}</nav><div className="border-t border-slate-200 p-5 text-xs text-slate-500">CarePlus Administration</div></aside><section className="min-w-0 flex-1"><header className="bg-slate-950 px-6 py-7 text-white lg:px-10"><div className="mx-auto flex max-w-7xl items-end justify-between gap-6"><div><p className="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">CarePlus Medical Centre</p><h1 className="mt-2 text-3xl font-semibold tracking-tight">Appointments</h1><p className="mt-2 text-sm text-slate-400">Manage today's schedule, appointment status and patient visits.</p></div><div className="hidden text-right sm:block"><p className="text-xs text-slate-500">Signed in as</p><p className="mt-1 text-sm font-medium">{email}</p></div></div></header><div className="mx-auto max-w-7xl space-y-6 p-5 lg:p-8"><div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{[['Scheduled', counts.Scheduled ?? 0], ['Confirmed', counts.Confirmed ?? 0], ['Completed', counts.Completed ?? 0], ['Cancelled', counts.Cancelled ?? 0]].map(([label, value]) => <div key={label} className="group rounded-2xl bg-slate-950 p-5 text-white shadow-sm transition-transform hover:-translate-y-0.5"><div className="flex items-center justify-between"><p className="text-sm text-slate-400">{label}</p><CalendarDays size={17} className="text-slate-500"/></div><p className="mt-5 text-3xl font-semibold tracking-tight">{value}</p><div className="mt-3 h-1 overflow-hidden rounded-full bg-slate-800"><div className="h-full w-1/2 rounded-full bg-slate-400 transition-all group-hover:w-3/4"/></div></div>)}</div><section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200/70 lg:p-6"><div className="mb-4 flex items-center gap-2"><div className="grid h-9 w-9 place-items-center rounded-xl bg-slate-100"><Search size={17}/></div><div><h2 className="font-semibold text-slate-950">Find an appointment</h2><p className="text-xs text-slate-500">Search by patient, doctor, type or reason.</p></div></div><form className="grid gap-4 lg:grid-cols-[1fr_220px_auto]" method="get"><label><span className="sr-only">Search</span><input name="search" defaultValue={search} placeholder="Patient, doctor, type or reason" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-slate-950 focus:bg-white focus:ring-4 focus:ring-slate-100"/></label><label><span className="sr-only">Status</span><select name="status" defaultValue={status} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-slate-950 focus:ring-4 focus:ring-slate-100">{statuses.map((item) => <option key={item}>{item}</option>)}</select></label><button type="submit" className="rounded-xl bg-slate-950 px-6 py-3 text-sm font-medium text-white transition hover:-translate-y-0.5 hover:bg-slate-800">Apply filters</button></form></section><section className="overflow-hidden rounded-2xl bg-slate-950 text-white shadow-sm"><div className="flex items-center justify-between border-b border-slate-800 px-5 py-5 lg:px-6"><div><p className="text-xs font-medium uppercase tracking-[0.18em] text-slate-500">Operations</p><h2 className="mt-1 font-semibold">Appointment records</h2><p className="mt-1 text-sm text-slate-400">Showing {filteredRows.length} of up to 100 loaded appointments.</p></div>{error && <span className="rounded-full border border-red-400/20 bg-red-400/10 px-3 py-1 text-xs text-red-300">Unable to load</span>}</div><div className="overflow-x-auto"><table className="min-w-full text-sm"><thead className="bg-slate-900 text-left text-xs uppercase tracking-wider text-slate-500"><tr><th className="px-6 py-4 font-medium">Appointment</th><th className="px-6 py-4 font-medium">Patient</th><th className="px-6 py-4 font-medium">Doctor</th><th className="px-6 py-4 font-medium">Date & time</th><th className="px-6 py-4 font-medium">Type</th><th className="px-6 py-4 font-medium">Status</th></tr></thead><tbody className="divide-y divide-slate-800">{filteredRows.map((appointment) => { const href = `/appointments/${appointment.appointment_id}`; const linkClass = 'block px-6 py-4 outline-none'; return <tr key={appointment.appointment_id} className="group transition hover:bg-slate-900"><td className="p-0 font-semibold"><Link href={href} className={linkClass}>#{appointment.appointment_id}</Link></td><td className="p-0"><Link href={href} className={linkClass}><p className="font-medium">{patientMap.get(appointment.patient_id) ?? 'Unknown patient'}</p><p className="mt-1 text-xs text-slate-500">{appointment.reason_for_visit ?? 'No reason recorded'}</p></Link></td><td className="p-0"><Link href={href} className={linkClass}><p className="font-medium">{doctorMap.get(appointment.doctor_id) ?? 'Unknown doctor'}</p><p className="mt-1 text-xs text-slate-500">{specialtyMap.get(appointment.doctor_id) ?? ''}</p></Link></td><td className="p-0 whitespace-nowrap"><Link href={href} className={linkClass}><p className="font-medium">{formatDate(appointment.appointment_date)}</p><p className="mt-1 text-xs text-slate-500">{formatTime(appointment.appointment_time)}</p></Link></td><td className="p-0 whitespace-nowrap"><Link href={href} className={linkClass + ' text-slate-400'}>{appointment.appointment_type}</Link></td><td className="p-0 whitespace-nowrap"><Link href={href} className={linkClass}><span className={`rounded-full border px-2.5 py-1 text-xs font-medium ${statusClass(appointment.appointment_status)}`}>{appointment.appointment_status}</span></Link></td></tr>; })}</tbody></table></div>{filteredRows.length === 0 && <div className="p-12 text-center text-sm text-slate-500">No appointments match the current filters.</div>}</section></div></section></div></main>;
 }
