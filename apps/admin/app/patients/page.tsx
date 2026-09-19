@@ -1,9 +1,9 @@
-import { ArrowRight, CalendarDays, ClipboardList, HeartPulse, LayoutDashboard, Mail, Phone, Search, Settings, Stethoscope, Users } from 'lucide-react';
+import { ArrowRight, BarChart3, CalendarDays, ClipboardList, HeartPulse, LayoutDashboard, Mail, Phone, Search, Settings, Stethoscope, Users } from 'lucide-react';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { createClient } from '../../lib/supabase/server';
 
-const navigation = [['Dashboard','/dashboard',LayoutDashboard],['Appointments','/appointments',CalendarDays],['Patients','/patients',Users],['Doctors','/doctors',Stethoscope],['Notifications','/notifications',ClipboardList],['Settings','/settings',Settings]] as const;
+const navigation = [['Dashboard','/dashboard',LayoutDashboard],['Appointments','/appointments',CalendarDays],['Patients','/patients',Users],['Doctors','/doctors',Stethoscope],['Notifications','/notifications',ClipboardList],['Feedback','/feedback',BarChart3],['Settings','/settings',Settings]] as const;
 type SearchParams = Promise<{ search?: string }>;
 export const dynamic = 'force-dynamic';
 function formatDate(date: string | null) { if (!date) return 'Not recorded'; return new Intl.DateTimeFormat('en-NG',{day:'2-digit',month:'short',year:'numeric',timeZone:'Africa/Lagos'}).format(new Date(`${date}T12:00:00+01:00`)); }
