@@ -1,6 +1,16 @@
 'use client';
 
-import { CalendarClock, Check, CircleAlert, CircleCheck, CircleX, Clock3, LogIn, Play, UserX } from 'lucide-react';
+import {
+  CalendarClock,
+  Check,
+  CircleAlert,
+  CircleCheck,
+  CircleX,
+  Clock3,
+  LogIn,
+  Play,
+  UserX,
+} from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -42,6 +52,7 @@ export default function AppointmentActions({ appointmentId, currentStatus }: Pro
 
   const actions = (ACTIONS as Record<string, readonly Action[]>)[currentStatus] ?? [];
   const canReschedule = currentStatus === 'Scheduled' || currentStatus === 'Confirmed';
+  const isFinalStatus = actions.length === 0;
 
   async function handleAction(action: Action) {
     const confirmed = window.confirm(
@@ -70,19 +81,35 @@ export default function AppointmentActions({ appointmentId, currentStatus }: Pro
   }
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-[var(--border)] bg-white shadow-sm transition-shadow duration-200 hover:shadow-md">
-      <div className="border-b border-[var(--border)] bg-gradient-to-r from-slate-50 to-white px-5 py-4 sm:px-6">
+    <section className="overflow-hidden rounded-2xl border border-[var(--border)] bg-white shadow-sm">
+      <div className="flex flex-col gap-4 border-b border-[var(--border)] bg-slate-50/70 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <div className="flex items-center gap-3">
           <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-slate-900 text-white shadow-sm">
             <Clock3 size={18} />
           </div>
           <div>
-            <h2 className="text-base font-semibold text-slate-900">Appointment actions</h2>
+            <div className="flex items-center gap-2">
+              <h2 className="text-base font-semibold text-slate-900">Appointment actions</h2>
+              {!isFinalStatus && (
+                <span className="hidden rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-slate-500 sm:inline-flex">
+                  {currentStatus}
+                </span>
+              )}
+            </div>
             <p className="mt-0.5 text-sm text-slate-500">
-              {actions.length > 0 ? `Manage appointment #${appointmentId} from its current status.` : 'This appointment has reached a final status.'}
+              {isFinalStatus ? 'This appointment has reached a final status.' : `Manage appointment #${appointmentId} from its current status.`}
             </p>
           </div>
         </div>
+        {canReschedule && (
+          <Link
+            href={`/appointments/${appointmentId}/reschedule`}
+            className="group inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:bg-white hover:shadow-md sm:w-auto"
+          >
+            <CalendarClock size={16} className="transition-transform duration-200 group-hover:scale-110" />
+            Reschedule
+          </Link>
+        )}
       </div>
 
       {error && (
@@ -92,40 +119,43 @@ export default function AppointmentActions({ appointmentId, currentStatus }: Pro
         </div>
       )}
 
-      <div className="flex flex-wrap gap-3 p-5 sm:p-6">
-        {actions.map((action) => {
-          const Icon = action.Icon;
-          const isLoading = loadingStatus === action.status;
-          return (
-            <button
-              key={action.status}
-              type="button"
-              onClick={() => handleAction(action)}
-              disabled={loadingStatus !== null}
-              className={
-                action.tone === 'danger'
-                  ? 'group inline-flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-semibold text-red-700 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-red-100 hover:shadow disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50'
-                  : action.tone === 'primary'
-                    ? 'group inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-slate-800 hover:shadow-md disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50'
-                    : 'group inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50'
-              }
-            >
-              <Icon size={16} className="transition-transform duration-200 group-hover:scale-110" />
-              {isLoading ? 'Updating…' : action.label}
-            </button>
-          );
-        })}
+      {!isFinalStatus && (
+        <div className="grid gap-3 p-5 sm:flex sm:flex-wrap sm:p-6">
+          {actions.map((action) => {
+            const Icon = action.Icon;
+            const isLoading = loadingStatus === action.status;
+            const base = 'group inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold shadow-sm transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0';
+            const tone =
+              action.tone === 'danger'
+                ? 'border border-red-200 bg-red-50 text-red-700 hover:-translate-y-0.5 hover:bg-red-100 hover:shadow-md'
+                : action.tone === 'primary'
+                  ? 'bg-slate-900 text-white hover:-translate-y-0.5 hover:bg-slate-800 hover:shadow-md'
+                  : 'border border-slate-200 bg-white text-slate-700 hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-md';
 
-        {canReschedule && (
-          <Link
-            href={`/appointments/${appointmentId}/reschedule`}
-            className="group inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow"
-          >
-            <CalendarClock size={16} className="transition-transform duration-200 group-hover:scale-110" />
-            Reschedule appointment
-          </Link>
-        )}
-      </div>
+            return (
+              <button
+                key={action.status}
+                type="button"
+                onClick={() => handleAction(action)}
+                disabled={loadingStatus !== null}
+                className={`${base} ${tone}`}
+              >
+                <Icon size={16} className="transition-transform duration-200 group-hover:scale-110" />
+                {isLoading ? 'Updating…' : action.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {isFinalStatus && (
+        <div className="px-5 py-5 sm:px-6">
+          <div className="flex items-center gap-3 rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-600">
+            <CircleCheck size={17} className="shrink-0 text-slate-500" />
+            No further status actions are available for this appointment.
+          </div>
+        </div>
+      )}
     </section>
   );
 }
