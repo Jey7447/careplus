@@ -1,7 +1,7 @@
 import {
+  ArrowUpRight,
   BarChart3,
   CheckCircle2,
-  Clock3,
   HeartPulse,
   MessageSquareText,
   Search,
@@ -16,7 +16,7 @@ import { createClient } from '../../lib/supabase/server';
 
 const navigation = [
   ['Dashboard', '/', HeartPulse],
-  ['Appointments', '/appointments', Clock3],
+  ['Appointments', '/appointments', HeartPulse],
   ['Patients', '/patients', Users],
   ['Doctors', '/doctors', Stethoscope],
   ['Notifications', '/notifications', MessageSquareText],
@@ -156,9 +156,7 @@ export default async function FeedbackPage({ searchParams }: { searchParams: Sea
                 </div>
                 <div className="hidden rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-right sm:block">
                   <p className="text-xs text-slate-500">Average satisfaction</p>
-                  <div className="mt-1 flex items-center justify-end gap-2 text-lg font-semibold text-slate-900">
-                    <Star size={16} className="fill-current" />{average ? average.toFixed(1) : '—'}
-                  </div>
+                  <div className="mt-1 flex items-center justify-end gap-2 text-lg font-semibold text-slate-900"><Star size={16} className="fill-current" />{average ? average.toFixed(1) : '—'}</div>
                 </div>
               </div>
             </div>
@@ -174,32 +172,19 @@ export default async function FeedbackPage({ searchParams }: { searchParams: Sea
 
             <section className="rounded-2xl border border-[var(--border)] bg-white p-4 shadow-sm">
               <form className="flex flex-col gap-3 md:flex-row" method="get">
-                <label className="relative flex-1">
-                  <span className="sr-only">Search feedback</span>
-                  <Search size={17} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input name="search" defaultValue={params.search ?? ''} placeholder="Search patient, doctor, comment or appointment..." className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-3 text-sm outline-none transition focus:border-slate-400 focus:bg-white" />
-                </label>
-                <select name="status" defaultValue={params.status ?? 'All'} className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none focus:border-slate-400">
-                  <option>All</option><option>New</option><option>Reviewed</option><option>Follow-up Required</option><option>Resolved</option>
-                </select>
+                <label className="relative flex-1"><span className="sr-only">Search feedback</span><Search size={17} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" /><input name="search" defaultValue={params.search ?? ''} placeholder="Search patient, doctor, comment or appointment..." className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-3 text-sm outline-none transition focus:border-slate-400 focus:bg-white" /></label>
+                <select name="status" defaultValue={params.status ?? 'All'} className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none focus:border-slate-400"><option>All</option><option>New</option><option>Reviewed</option><option>Follow-up Required</option><option>Resolved</option></select>
                 <button type="submit" className="h-11 rounded-xl bg-slate-900 px-5 text-sm font-medium text-white transition hover:bg-slate-800">Filter</button>
               </form>
             </section>
 
             <section className="overflow-hidden rounded-2xl border border-[var(--border)] bg-white shadow-sm">
-              <div className="flex items-center justify-between border-b border-slate-100 px-6 py-5">
-                <div><h2 className="font-semibold text-slate-950">Patient feedback</h2><p className="mt-1 text-sm text-slate-500">Recent responses and follow-up status.</p></div>
-                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">{filteredFeedback.length} shown</span>
-              </div>
+              <div className="flex items-center justify-between border-b border-slate-100 px-6 py-5"><div><h2 className="font-semibold text-slate-950">Patient feedback</h2><p className="mt-1 text-sm text-slate-500">Recent responses and follow-up status.</p></div><span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">{filteredFeedback.length} shown</span></div>
 
               {error ? (
                 <div className="m-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">Unable to load feedback right now.</div>
               ) : filteredFeedback.length === 0 ? (
-                <div className="px-6 py-16 text-center">
-                  <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-slate-100 text-slate-500"><MessageSquareText size={21} /></div>
-                  <h3 className="mt-4 font-semibold text-slate-900">No feedback yet</h3>
-                  <p className="mx-auto mt-1 max-w-md text-sm text-slate-500">Patient feedback will appear here once the feedback collection workflow starts receiving responses.</p>
-                </div>
+                <div className="px-6 py-16 text-center"><div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-slate-100 text-slate-500"><MessageSquareText size={21} /></div><h3 className="mt-4 font-semibold text-slate-900">No feedback yet</h3><p className="mx-auto mt-1 max-w-md text-sm text-slate-500">Patient feedback will appear here once the feedback collection workflow starts receiving responses.</p></div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full min-w-[850px] text-left text-sm">
@@ -210,7 +195,15 @@ export default async function FeedbackPage({ searchParams }: { searchParams: Sea
                         const doctor = item.doctor_id ? doctorMap.get(item.doctor_id) : null;
                         return (
                           <tr key={item.feedback_id} className="transition hover:bg-slate-50/70">
-                            <td className="px-6 py-4"><p className="font-medium text-slate-900">{patient ? `${patient.first_name} ${patient.last_name}` : `Patient #${item.patient_id}`}</p><p className="mt-0.5 text-xs text-slate-500">{doctor ? `Dr. ${doctor.first_name} ${doctor.last_name}` : 'Doctor not linked'}</p></td>
+                            <td className="px-6 py-4">
+                              <Link href={`/feedback/${item.feedback_id}`} className="group block rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-slate-400">
+                                <span className="flex items-center gap-2 font-medium text-slate-900 group-hover:text-slate-950">
+                                  {patient ? `${patient.first_name} ${patient.last_name}` : `Patient #${item.patient_id}`}
+                                  <ArrowUpRight size={14} className="text-slate-400 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                                </span>
+                                <span className="mt-0.5 block text-xs text-slate-500">{doctor ? `Dr. ${doctor.first_name} ${doctor.last_name}` : 'Doctor not linked'}</span>
+                              </Link>
+                            </td>
                             <td className="px-4 py-4"><div className="flex items-center gap-2"><Stars rating={item.overall_rating} /><span className="text-xs font-medium text-slate-600">{ratingLabel(item.overall_rating)}</span></div></td>
                             <td className="max-w-sm px-4 py-4"><p className="truncate text-slate-700">{item.comments || item.feedback_category || 'No written comment'}</p></td>
                             <td className="px-4 py-4 text-slate-600">{item.appointment_id ? `#${item.appointment_id}` : 'General feedback'}</td>
@@ -225,9 +218,7 @@ export default async function FeedbackPage({ searchParams }: { searchParams: Sea
               )}
             </section>
 
-            <section className="rounded-2xl border border-dashed border-slate-300 bg-slate-50/60 p-5">
-              <div className="flex gap-3"><CheckCircle2 size={19} className="mt-0.5 text-slate-500" /><div><p className="text-sm font-medium text-slate-800">Feedback workflow foundation is ready</p><p className="mt-1 text-sm text-slate-500">The admin view is connected to the new feedback table. The next step is the patient-facing collection flow and automated follow-up handling.</p></div></div>
-            </section>
+            <section className="rounded-2xl border border-dashed border-slate-300 bg-slate-50/60 p-5"><div className="flex gap-3"><CheckCircle2 size={19} className="mt-0.5 text-slate-500" /><div><p className="text-sm font-medium text-slate-800">Feedback workflow foundation is ready</p><p className="mt-1 text-sm text-slate-500">The admin view is connected to the new feedback table. The next step is the patient-facing collection flow and automated follow-up handling.</p></div></div></section>
           </div>
         </section>
       </div>
