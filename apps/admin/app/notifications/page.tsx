@@ -1,8 +1,8 @@
-import { ArrowRight, Bell, CalendarDays, ClipboardList, HeartPulse, LayoutDashboard, Search, Settings, Stethoscope, Users } from 'lucide-react';
+import { ArrowRight, BarChart3, Bell, CalendarDays, ClipboardList, HeartPulse, LayoutDashboard, Search, Settings, Stethoscope, Users } from 'lucide-react';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { createClient } from '../../lib/supabase/server';
-const navigation=[['Dashboard','/dashboard',LayoutDashboard],['Appointments','/appointments',CalendarDays],['Patients','/patients',Users],['Doctors','/doctors',Stethoscope],['Notifications','/notifications',ClipboardList],['Settings','/settings',Settings]] as const;
+const navigation=[['Dashboard','/dashboard',LayoutDashboard],['Appointments','/appointments',CalendarDays],['Patients','/patients',Users],['Doctors','/doctors',Stethoscope],['Notifications','/notifications',ClipboardList],['Feedback','/feedback',BarChart3],['Settings','/settings',Settings]] as const;
 type SearchParams=Promise<{search?:string;status?:string;channel?:string}>; export const dynamic='force-dynamic';
 function formatDate(value:string|null){if(!value)return'Not recorded';return new Intl.DateTimeFormat('en-NG',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',timeZone:'Africa/Lagos'}).format(new Date(value));}
 function statusClass(status:string){return status==='Delivered'?'border-emerald-400/20 bg-emerald-400/10 text-emerald-300':status==='Failed'?'border-red-400/20 bg-red-400/10 text-red-300':status==='Sent'?'border-slate-600 bg-slate-800 text-slate-300':'border-amber-400/20 bg-amber-400/10 text-amber-300';}
