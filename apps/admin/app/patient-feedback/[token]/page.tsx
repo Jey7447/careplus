@@ -1,6 +1,6 @@
 import { HeartPulse, MapPin, Stethoscope } from 'lucide-react';
 import { notFound } from 'next/navigation';
-import { createClient } from '../../lib/supabase/server';
+import { createClient } from '../../../lib/supabase/server';
 import FeedbackForm from './feedback-form';
 
 type PageProps = { params: Promise<{ token: string }> };
