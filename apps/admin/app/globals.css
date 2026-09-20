@@ -10,15 +10,21 @@ h1 { line-height: 1.15; }
 h2, h3 { line-height: 1.25; }
 button, input, select, textarea { font: inherit; }
 button, a { -webkit-tap-highlight-color: transparent; }
+
+/* Dark-mode surface and text overrides shared across the admin app. */
 html.dark .bg-white { background-color: #111827 !important; }
 html.dark .bg-slate-50 { background-color: #172033 !important; }
 html.dark .bg-slate-100 { background-color: #1f2937 !important; }
+html.dark .text-slate-950 { color: #f8fafc !important; }
 html.dark .text-slate-900 { color: #f8fafc !important; }
 html.dark .text-slate-800 { color: #e5e7eb !important; }
 html.dark .text-slate-700 { color: #cbd5e1 !important; }
 html.dark .text-slate-600 { color: #94a3b8 !important; }
 html.dark .text-slate-500 { color: #94a3b8 !important; }
 html.dark .text-slate-400 { color: #64748b !important; }
+html.dark .text-emerald-900 { color: #6ee7b7 !important; }
+html.dark .text-amber-900 { color: #fbbf24 !important; }
+html.dark .text-red-900 { color: #fda4af !important; }
 html.dark .border-slate-100 { border-color: #1e293b !important; }
 html.dark .border-slate-200 { border-color: #273244 !important; }
 html.dark .border-slate-300 { border-color: #334155 !important; }
@@ -38,3 +44,11 @@ html.dark .bg-blue-50 { background-color: #172554 !important; }
 html.dark .text-blue-700 { color: #93c5fd !important; }
 html.dark .bg-orange-50 { background-color: #3b2413 !important; }
 html.dark .text-orange-700 { color: #fdba74 !important; }
+
+/* The dashboard hero action stays dark text on its light button. */
+html.dark .bg-white.text-slate-950 { color: #020617 !important; }
+
+/* Softer status tiles remain clearly differentiated in dark mode. */
+html.dark .bg-emerald-50\/60 { background-color: #123326 !important; }
+html.dark .bg-amber-50\/60 { background-color: #3b2a12 !important; }
+html.dark .bg-red-50\/60 { background-color: #3f1d24 !important; }
