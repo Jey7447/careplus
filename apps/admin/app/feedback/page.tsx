@@ -38,6 +38,7 @@ type FeedbackRecord = {
   waiting_time_rating: number | null;
   comments: string | null;
   feedback_category: string | null;
+  triage_status: string | null;
   follow_up_status: string;
   submitted_at: string;
 };
@@ -49,10 +50,20 @@ function ratingLabel(rating: number) {
 }
 
 function statusClass(status: string) {
+  if (status === 'normal') return 'bg-emerald-50 text-emerald-700';
+  if (status === 'follow_up') return 'bg-amber-50 text-amber-700';
+  if (status === 'critical') return 'bg-red-50 text-red-700';
   if (status === 'New') return 'bg-blue-50 text-blue-700';
-  if (status === 'Reviewed') return 'bg-emerald-50 text-emerald-700';
+  if (status === 'Reviewed' || status === 'Resolved') return 'bg-emerald-50 text-emerald-700';
   if (status === 'Follow-up Required') return 'bg-amber-50 text-amber-700';
   return 'bg-slate-100 text-slate-700';
+}
+
+function triageLabel(status: string | null, fallback: string) {
+  if (status === 'normal') return 'Normal';
+  if (status === 'follow_up') return 'Follow-up Required';
+  if (status === 'critical') return 'Critical';
+  return fallback;
 }
 
 function Stars({ rating }: { rating: number }) {
@@ -85,14 +96,21 @@ export default async function FeedbackPage({ searchParams }: { searchParams: Sea
   const params = await searchParams;
   const status = params.status && params.status !== 'All' ? params.status : null;
   const search = params.search?.trim().toLowerCase() ?? '';
+  const triageStatuses = new Set(['normal', 'follow_up', 'critical']);
+  const triageFilter = status && triageStatuses.has(status) ? status : null;
+  const lifecycleFilter = status && !triageFilter ? status : null;
 
   let feedbackQuery = supabase
     .from('patient_feedback')
-    .select('feedback_id, appointment_id, patient_id, doctor_id, branch_id, overall_rating, doctor_rating, facility_rating, waiting_time_rating, comments, feedback_category, follow_up_status, submitted_at')
+    .select('feedback_id, appointment_id, patient_id, doctor_id, branch_id, overall_rating, doctor_rating, facility_rating, waiting_time_rating, comments, feedback_category, triage_status, follow_up_status, submitted_at')
     .order('submitted_at', { ascending: false })
     .limit(100);
 
-  if (status) feedbackQuery = feedbackQuery.eq('follow_up_status', status);
+  if (triageFilter) {
+    feedbackQuery = feedbackQuery.eq('triage_status', triageFilter);
+  } else if (lifecycleFilter) {
+    feedbackQuery = feedbackQuery.eq('follow_up_status', lifecycleFilter);
+  }
 
   const { data: feedbackRows, error } = await feedbackQuery;
   const feedback = (feedbackRows ?? []) as FeedbackRecord[];
@@ -173,7 +191,15 @@ export default async function FeedbackPage({ searchParams }: { searchParams: Sea
             <section className="rounded-2xl border border-[var(--border)] bg-white p-4 shadow-sm">
               <form className="flex flex-col gap-3 md:flex-row" method="get">
                 <label className="relative flex-1"><span className="sr-only">Search feedback</span><Search size={17} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" /><input name="search" defaultValue={params.search ?? ''} placeholder="Search patient, doctor, comment or appointment..." className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-3 text-sm outline-none transition focus:border-slate-400 focus:bg-white" /></label>
-                <select name="status" defaultValue={params.status ?? 'All'} className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none focus:border-slate-400"><option>All</option><option>New</option><option>Reviewed</option><option>Follow-up Required</option><option>Resolved</option></select>
+                <select name="status" defaultValue={params.status ?? 'All'} className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none focus:border-slate-400">
+                  <option value="All">All</option>
+                  <option value="normal">Normal</option>
+                  <option value="follow_up">Follow-up Required</option>
+                  <option value="critical">Critical</option>
+                  <option value="New">New</option>
+                  <option value="Reviewed">Reviewed</option>
+                  <option value="Resolved">Resolved</option>
+                </select>
                 <button type="submit" className="h-11 rounded-xl bg-slate-900 px-5 text-sm font-medium text-white transition hover:bg-slate-800">Filter</button>
               </form>
             </section>
@@ -193,6 +219,8 @@ export default async function FeedbackPage({ searchParams }: { searchParams: Sea
                       {filteredFeedback.map((item) => {
                         const patient = patientMap.get(item.patient_id);
                         const doctor = item.doctor_id ? doctorMap.get(item.doctor_id) : null;
+                        const displayStatus = triageLabel(item.triage_status, item.follow_up_status);
+                        const displayStatusKey = item.triage_status ?? item.follow_up_status;
                         return (
                           <tr key={item.feedback_id} className="transition hover:bg-slate-50/70">
                             <td className="px-6 py-4">
@@ -207,7 +235,7 @@ export default async function FeedbackPage({ searchParams }: { searchParams: Sea
                             <td className="px-4 py-4"><div className="flex items-center gap-2"><Stars rating={item.overall_rating} /><span className="text-xs font-medium text-slate-600">{ratingLabel(item.overall_rating)}</span></div></td>
                             <td className="max-w-sm px-4 py-4"><p className="truncate text-slate-700">{item.comments || item.feedback_category || 'No written comment'}</p></td>
                             <td className="px-4 py-4 text-slate-600">{item.appointment_id ? `#${item.appointment_id}` : 'General feedback'}</td>
-                            <td className="px-4 py-4"><span className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusClass(item.follow_up_status)}`}>{item.follow_up_status}</span></td>
+                            <td className="px-4 py-4"><span className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusClass(displayStatusKey)}`}>{displayStatus}</span></td>
                             <td className="px-6 py-4 text-right text-xs text-slate-500">{new Date(item.submitted_at).toLocaleDateString('en-NG', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Africa/Lagos' })}</td>
                           </tr>
                         );
