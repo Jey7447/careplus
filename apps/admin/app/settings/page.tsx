@@ -1,4 +1,4 @@
-import { Bell, CalendarDays, CheckCircle2, HeartPulse, LayoutDashboard, LockKeyhole, Settings as SettingsIcon, ShieldCheck, Stethoscope, Users, Wrench } from 'lucide-react';
+import { BarChart3, Bell, CalendarDays, CheckCircle2, HeartPulse, LayoutDashboard, LockKeyhole, Settings as SettingsIcon, ShieldCheck, Stethoscope, Users, Wrench } from 'lucide-react';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { createClient } from '../../lib/supabase/server';
@@ -9,6 +9,7 @@ const navigation = [
   ['Patients', '/patients', Users],
   ['Doctors', '/doctors', Stethoscope],
   ['Notifications', '/notifications', Bell],
+  ['Feedback', '/feedback', BarChart3],
   ['Settings', '/settings', SettingsIcon],
 ] as const;
 
