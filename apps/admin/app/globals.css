@@ -45,8 +45,8 @@ html.dark .text-blue-700 { color: #93c5fd !important; }
 html.dark .bg-orange-50 { background-color: #3b2413 !important; }
 html.dark .text-orange-700 { color: #fdba74 !important; }
 
-/* The dashboard hero action stays dark text on its light button. */
-html.dark .bg-white.text-slate-950 { color: #020617 !important; }
+/* Keep intentionally light action buttons light in dark mode. */
+html.dark .dashboard-hero-action { background-color: #ffffff !important; color: #020617 !important; }
 
 /* Softer status tiles remain clearly differentiated in dark mode. */
 html.dark .bg-emerald-50\/60 { background-color: #123326 !important; }
