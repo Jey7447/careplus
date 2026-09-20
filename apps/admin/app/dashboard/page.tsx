@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowRight, BarChart3, CalendarDays, ClipboardList, HeartPulse, LayoutDashboard, Settings, Stethoscope, Users } from 'lucide-react';
+import { AlertCircle, ArrowRight, BarChart3, CalendarDays, ClipboardList, HeartPulse, LayoutDashboard, Settings, Stethoscope, Users } from 'lucide-react';
 import { getDashboardStats } from '../../lib/dashboard';
 
 const navigation = [
@@ -36,6 +36,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function DashboardPage() {
   const stats = await getDashboardStats();
+  const feedbackAttentionCount = stats.feedbackCritical + stats.feedbackFollowUp;
 
   const cards = [
     ['Today’s Appointments', stats.todayAppointments, CalendarDays, 'appointments', 'View schedule'],
@@ -82,6 +83,35 @@ export default async function DashboardPage() {
                 </Link>
               </div>
             </section>
+
+            {feedbackAttentionCount > 0 && (
+              <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+                <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-start gap-4">
+                    <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-amber-50 text-amber-700"><AlertCircle size={21} /></div>
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Feedback attention</p>
+                      <h2 className="mt-1 text-xl font-semibold text-slate-950">{feedbackAttentionCount} feedback{feedbackAttentionCount === 1 ? '' : 's'} need attention</h2>
+                      <p className="mt-1 text-sm text-slate-500">AI-triaged feedback that has been marked for staff review.</p>
+                    </div>
+                  </div>
+                  <Link href="/feedback?status=Follow-up%20Required" className="group inline-flex w-fit items-center gap-2 rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800">
+                    Review feedback
+                    <ArrowRight size={15} className="transition-transform group-hover:translate-x-0.5" />
+                  </Link>
+                </div>
+                <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                  <Link href="/feedback?status=Follow-up%20Required" className="flex items-center justify-between rounded-xl border border-amber-100 bg-amber-50/60 px-4 py-3 transition hover:bg-amber-50">
+                    <span className="flex items-center gap-2 text-sm font-medium text-amber-900"><span className="h-2.5 w-2.5 rounded-full bg-amber-400" />Follow-up Required</span>
+                    <span className="text-lg font-semibold text-amber-900">{stats.feedbackFollowUp}</span>
+                  </Link>
+                  <Link href="/feedback?status=Critical" className="flex items-center justify-between rounded-xl border border-red-100 bg-red-50/60 px-4 py-3 transition hover:bg-red-50">
+                    <span className="flex items-center gap-2 text-sm font-medium text-red-900"><span className="h-2.5 w-2.5 rounded-full bg-red-500" />Critical</span>
+                    <span className="text-lg font-semibold text-red-900">{stats.feedbackCritical}</span>
+                  </Link>
+                </div>
+              </section>
+            )}
 
             <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
               {cards.map(([label, value, Icon, href, action]) => (
