@@ -18,6 +18,7 @@ import {
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { createClient } from '../../../lib/supabase/server';
+import StatusActions from './status-actions';
 
 const navigation = [
   ['Dashboard', '/', HeartPulse],
@@ -247,6 +248,11 @@ export default async function FeedbackDetailPage({ params }: PageProps) {
                 )}
               </div>
             </section>
+
+            <StatusActions
+              feedbackId={feedback.feedback_id}
+              currentStatus={feedback.follow_up_status as 'New' | 'Reviewed' | 'Follow-up Required' | 'Resolved'}
+            />
 
             <section className="rounded-2xl border border-slate-200 bg-slate-50/70 p-5">
               <div className="flex gap-3">
