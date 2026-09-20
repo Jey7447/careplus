@@ -1,32 +1,41 @@
 'use client';
 
-import Link from 'next/link';
-import { BarChart3 } from 'lucide-react';
-import { createRoot, type Root } from 'react-dom/client';
 import { useEffect } from 'react';
 
 export default function AdminFeedbackNavPatch() {
   useEffect(() => {
-    const roots = new Map<HTMLElement, Root>();
+    const feedbackHref = '/feedback';
 
     const patchNav = (nav: HTMLElement) => {
-      if (nav.querySelector('a[href="/feedback"]')) return;
+      // Do not duplicate the link if the page already defines it.
+      if (nav.querySelector(`a[href="${feedbackHref}"]`)) return;
 
-      const mount = document.createElement('div');
-      nav.appendChild(mount);
+      const link = document.createElement('a');
+      link.href = feedbackHref;
+      link.className =
+        'group mb-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-300 transition-colors hover:bg-white/5 hover:text-white';
+      link.innerHTML = `
+        <span aria-hidden="true" class="grid h-[18px] w-[18px] place-items-center">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 3v18" />
+            <path d="M3 15h4" />
+            <path d="M3 9h7" />
+            <path d="M3 21h18" />
+            <path d="M10 9h4" />
+            <path d="M10 15h4" />
+            <path d="M10 3h4" />
+            <path d="M17 3h4v18h-4" />
+          </svg>
+        </span>
+        <span>Feedback</span>
+      `;
 
-      const root = createRoot(mount);
-      root.render(
-        <Link
-          href="/feedback"
-          className="group mb-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
-        >
-          <BarChart3 size={18} />
-          <span>Feedback</span>
-        </Link>,
-      );
+      link.addEventListener('click', () => {
+        // Let Next.js handle normal client navigation when possible.
+        // The native anchor remains fully functional as a fallback.
+      });
 
-      roots.set(mount, root);
+      nav.appendChild(link);
     };
 
     const scan = () => {
@@ -38,14 +47,7 @@ export default function AdminFeedbackNavPatch() {
     const observer = new MutationObserver(scan);
     observer.observe(document.body, { childList: true, subtree: true });
 
-    return () => {
-      observer.disconnect();
-      for (const [mount, root] of roots) {
-        root.unmount();
-        mount.remove();
-      }
-      roots.clear();
-    };
+    return () => observer.disconnect();
   }, []);
 
   return null;
