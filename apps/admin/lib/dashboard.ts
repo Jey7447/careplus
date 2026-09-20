@@ -9,13 +9,24 @@ export type UpcomingAppointment = {
   doctor_name: string;
 };
 
+export type FeedbackAttention = {
+  feedback_id: number;
+  appointment_id: number | null;
+  patient_id: number;
+  overall_rating: number;
+  comments: string | null;
+  feedback_category: string | null;
+  follow_up_status: string;
+  submitted_at: string;
+};
+
 export async function getDashboardStats() {
   const supabase = await createClient();
 
   const today = new Date();
   const todayDate = today.toISOString().slice(0, 10);
 
-  const [appointments, patients, doctors, notifications, upcoming] = await Promise.all([
+  const [appointments, patients, doctors, notifications, upcoming, feedbackAttention, feedbackCritical, feedbackFollowUp] = await Promise.all([
     supabase.from('appointments').select('appointment_id', { count: 'exact', head: true }).eq('appointment_date', todayDate),
     supabase.from('patients').select('patient_id', { count: 'exact', head: true }),
     supabase.from('doctors').select('doctor_id', { count: 'exact', head: true }).eq('active', true),
@@ -28,9 +39,17 @@ export async function getDashboardStats() {
       .order('appointment_date', { ascending: true })
       .order('appointment_time', { ascending: true })
       .limit(5),
+    supabase
+      .from('patient_feedback')
+      .select('feedback_id, appointment_id, patient_id, overall_rating, comments, feedback_category, follow_up_status, submitted_at')
+      .in('follow_up_status', ['Follow-up Required', 'Critical'])
+      .order('submitted_at', { ascending: false })
+      .limit(5),
+    supabase.from('patient_feedback').select('feedback_id', { count: 'exact', head: true }).eq('follow_up_status', 'Critical'),
+    supabase.from('patient_feedback').select('feedback_id', { count: 'exact', head: true }).eq('follow_up_status', 'Follow-up Required'),
   ]);
 
-  const error = appointments.error || patients.error || doctors.error || notifications.error || upcoming.error;
+  const error = appointments.error || patients.error || doctors.error || notifications.error || upcoming.error || feedbackAttention.error || feedbackCritical.error || feedbackFollowUp.error;
   if (error) throw error;
 
   const upcomingRows = upcoming.data ?? [];
@@ -65,6 +84,9 @@ export async function getDashboardStats() {
     totalPatients: patients.count ?? 0,
     activeDoctors: doctors.count ?? 0,
     pendingNotifications: notifications.count ?? 0,
+    feedbackCritical: feedbackCritical.count ?? 0,
+    feedbackFollowUp: feedbackFollowUp.count ?? 0,
+    feedbackAttention: (feedbackAttention.data ?? []) as FeedbackAttention[],
     upcomingAppointments,
   };
 }
