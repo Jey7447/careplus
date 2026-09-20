@@ -77,7 +77,7 @@ export default async function DashboardPage() {
                   <h1 className="mt-5 text-3xl font-semibold tracking-tight sm:text-4xl">Good morning, Admin.</h1>
                   <p className="mt-3 max-w-xl text-sm leading-6 text-slate-300 sm:text-base">Your CarePlus operations at a glance. Monitor today’s activity and jump straight into the area that needs attention.</p>
                 </div>
-                <Link href="/appointments" className="group inline-flex w-fit items-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-semibold text-slate-950 shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-100">
+                <Link href="/appointments" className="dashboard-hero-action group inline-flex w-fit items-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-semibold text-slate-950 shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-100">
                   Open appointments
                   <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
                 </Link>
