@@ -36,7 +36,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function DashboardPage() {
   const stats = await getDashboardStats();
-  const feedbackAttentionCount = stats.feedbackCritical + stats.feedbackFollowUp;
+  const feedbackAttentionCount = stats.feedbackAttentionCount;
 
   const cards = [
     ['Today’s Appointments', stats.todayAppointments, CalendarDays, 'appointments', 'View schedule'],
@@ -95,17 +95,21 @@ export default async function DashboardPage() {
                       <p className="mt-1 text-sm text-slate-500">AI-triaged feedback that has been marked for staff review.</p>
                     </div>
                   </div>
-                  <Link href="/feedback?status=Follow-up%20Required" className="group inline-flex w-fit items-center gap-2 rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800">
+                  <Link href="/feedback" className="group inline-flex w-fit items-center gap-2 rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800">
                     Review feedback
                     <ArrowRight size={15} className="transition-transform group-hover:translate-x-0.5" />
                   </Link>
                 </div>
-                <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                  <Link href="/feedback?status=Follow-up%20Required" className="flex items-center justify-between rounded-xl border border-amber-100 bg-amber-50/60 px-4 py-3 transition hover:bg-amber-50">
+                <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                  <Link href="/feedback?status=normal" className="flex items-center justify-between rounded-xl border border-emerald-100 bg-emerald-50/60 px-4 py-3 transition hover:bg-emerald-50">
+                    <span className="flex items-center gap-2 text-sm font-medium text-emerald-900"><span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />Normal</span>
+                    <span className="text-lg font-semibold text-emerald-900">{stats.feedbackNormal}</span>
+                  </Link>
+                  <Link href="/feedback?status=follow_up" className="flex items-center justify-between rounded-xl border border-amber-100 bg-amber-50/60 px-4 py-3 transition hover:bg-amber-50">
                     <span className="flex items-center gap-2 text-sm font-medium text-amber-900"><span className="h-2.5 w-2.5 rounded-full bg-amber-400" />Follow-up Required</span>
                     <span className="text-lg font-semibold text-amber-900">{stats.feedbackFollowUp}</span>
                   </Link>
-                  <Link href="/feedback?status=Critical" className="flex items-center justify-between rounded-xl border border-red-100 bg-red-50/60 px-4 py-3 transition hover:bg-red-50">
+                  <Link href="/feedback?status=critical" className="flex items-center justify-between rounded-xl border border-red-100 bg-red-50/60 px-4 py-3 transition hover:bg-red-50">
                     <span className="flex items-center gap-2 text-sm font-medium text-red-900"><span className="h-2.5 w-2.5 rounded-full bg-red-500" />Critical</span>
                     <span className="text-lg font-semibold text-red-900">{stats.feedbackCritical}</span>
                   </Link>
