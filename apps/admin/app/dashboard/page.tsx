@@ -9,6 +9,7 @@ const navigation = [
   ['Doctors', '/doctors', Stethoscope],
   ['Notifications', '/notifications', ClipboardList],
   ['Feedback', '/feedback', BarChart3],
+  ['Reports', '/reports', BarChart3],
   ['Settings', '/settings', Settings],
 ] as const;
 
