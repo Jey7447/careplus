@@ -49,6 +49,7 @@ const views = [
 type View = (typeof views)[number][1];
 
 type SummaryCard = [label: string, value: number, Icon: LucideIcon, target: View];
+type NotificationSummary = [label: string, value: number, Icon: LucideIcon];
 
 function statusClass(status: string) {
   if (status === 'Completed' || status === 'Delivered') return 'bg-emerald-50 text-emerald-700';
@@ -107,6 +108,13 @@ export default function ReportsDashboard({ stats }: { stats: ReportStats }) {
     ['Notifications', stats.notifications.total, Bell, 'notifications'],
     ['Failed notifications', stats.notifications.failed, XCircle, 'notifications'],
     ['Feedback records', stats.feedback.total, BarChart3, 'feedback'],
+  ];
+
+  const notificationSummary: NotificationSummary[] = [
+    ['Pending', stats.notifications.pending, Clock3],
+    ['Sent', stats.notifications.sent, Activity],
+    ['Delivered', stats.notifications.delivered, CheckCircle2],
+    ['Failed', stats.notifications.failed, XCircle],
   ];
 
   const handleRefresh = () => {
@@ -207,8 +215,8 @@ export default function ReportsDashboard({ stats }: { stats: ReportStats }) {
               <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow duration-300 hover:shadow-lg">
                 <div className="flex items-start justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Notifications</p><h2 className="mt-2 text-xl font-semibold text-slate-950">Delivery pipeline</h2><p className="mt-1 text-sm text-slate-500">Current notification state across all channels.</p></div><div className="flex items-center gap-2 rounded-full bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-600"><Zap size={13} /> {deliveryRate}% delivered</div></div>
                 <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-                  {[['Pending', stats.notifications.pending, Clock3], ['Sent', stats.notifications.sent, Activity], ['Delivered', stats.notifications.delivered, CheckCircle2], ['Failed', stats.notifications.failed, XCircle]].map(([label, value, Icon]) => (
-                    <div key={String(label)} className="group rounded-xl bg-slate-50 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:bg-slate-100"><div className="flex items-center justify-between"><p className="text-xs text-slate-500">{label}</p><Icon size={14} className="text-slate-400 transition-transform group-hover:scale-110" /></div><p className="mt-2 text-2xl font-semibold text-slate-950"><AnimatedNumber value={Number(value)} /></p></div>
+                  {notificationSummary.map(([label, value, Icon]) => (
+                    <div key={label} className="group rounded-xl bg-slate-50 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:bg-slate-100"><div className="flex items-center justify-between"><p className="text-xs text-slate-500">{label}</p><Icon size={14} className="text-slate-400 transition-transform group-hover:scale-110" /></div><p className="mt-2 text-2xl font-semibold text-slate-950"><AnimatedNumber value={value} /></p></div>
                   ))}
                 </div>
                 <div className="mt-6 border-t border-slate-100 pt-5"><div className="flex items-center justify-between"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Channels</p><p className="text-xs text-slate-400">Volume</p></div><div className="mt-4 space-y-4">{stats.notifications.byChannel.map((item) => { const Icon = channelIcons[item.channel as keyof typeof channelIcons] ?? Bell; return <div key={item.channel} className="group"><div className="mb-1.5 flex items-center justify-between"><span className="flex items-center gap-2 text-sm text-slate-600"><span className="grid h-7 w-7 place-items-center rounded-lg bg-slate-100"><Icon size={14} /></span>{item.channel}</span><span className="text-sm font-semibold text-slate-800">{item.count}</span></div><div className="h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-slate-700 transition-all duration-500 group-hover:bg-slate-950" style={{ width: `${Math.max(4, Math.round((item.count / notificationMax) * 100))}%` }} /></div></div>; })}</div></div>
