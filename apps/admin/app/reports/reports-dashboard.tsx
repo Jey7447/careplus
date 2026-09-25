@@ -25,6 +25,7 @@ import {
   XCircle,
   Zap,
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import type { ReportStats } from '../../lib/reports';
 
 const navigation = [
@@ -46,6 +47,8 @@ const views = [
 ] as const;
 
 type View = (typeof views)[number][1];
+
+type SummaryCard = [label: string, value: number, Icon: LucideIcon, target: View];
 
 function statusClass(status: string) {
   if (status === 'Completed' || status === 'Delivered') return 'bg-emerald-50 text-emerald-700';
@@ -93,11 +96,18 @@ export default function ReportsDashboard({ stats }: { stats: ReportStats }) {
   const healthLabel = stats.notifications.staleLocks > 0 ? 'Attention required' : stats.notifications.locked > 0 ? 'Processing' : 'All systems clear';
   const healthTone = stats.notifications.staleLocks > 0 ? 'text-red-600' : stats.notifications.locked > 0 ? 'text-amber-600' : 'text-emerald-600';
 
-  const channelIcons = useMemo(() => ({
+  const channelIcons = useMemo<Record<string, LucideIcon>>(() => ({
     SMS: Smartphone,
     Email: Mail,
     WhatsApp: Smartphone,
   }), []);
+
+  const summaryCards: SummaryCard[] = [
+    ['Appointments', stats.appointments.total, CalendarDays, 'appointments'],
+    ['Notifications', stats.notifications.total, Bell, 'notifications'],
+    ['Failed notifications', stats.notifications.failed, XCircle, 'notifications'],
+    ['Feedback records', stats.feedback.total, BarChart3, 'feedback'],
+  ];
 
   const handleRefresh = () => {
     setRefreshing(true);
@@ -158,13 +168,8 @@ export default function ReportsDashboard({ stats }: { stats: ReportStats }) {
           <div className="mx-auto max-w-7xl space-y-6 p-5 lg:p-8">
             <section id="overview" className="scroll-mt-6">
               <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                {[
-                  ['Appointments', stats.appointments.total, CalendarDays, 'appointments'],
-                  ['Notifications', stats.notifications.total, Bell, 'notifications'],
-                  ['Failed notifications', stats.notifications.failed, XCircle, 'notifications'],
-                  ['Feedback records', stats.feedback.total, BarChart3, 'feedback'],
-                ].map(([label, value, Icon, target], index) => (
-                  <button key={String(label)} onClick={() => scrollTo(String(target), setView)} type="button" className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-slate-300 hover:shadow-xl hover:shadow-slate-900/5">
+                {summaryCards.map(([label, value, Icon, target]) => (
+                  <button key={label} onClick={() => scrollTo(target, setView)} type="button" className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-slate-300 hover:shadow-xl hover:shadow-slate-900/5">
                     <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-slate-50 transition-transform duration-500 group-hover:scale-150" />
                     <div className="relative flex items-center justify-between"><p className="text-sm font-medium text-slate-500">{label}</p><span className="grid h-9 w-9 place-items-center rounded-xl bg-slate-100 text-slate-700 transition-transform duration-300 group-hover:rotate-6 group-hover:scale-110"><Icon size={17} /></span></div>
                     <p className="relative mt-5 text-3xl font-semibold tracking-tight text-slate-950"><AnimatedNumber value={Number(value)} /></p>
