@@ -20,6 +20,8 @@ export default function AdminShell() {
 
     setHasSidebar(true);
     sidebar.classList.add('careplus-sidebar');
+    sidebar.classList.toggle('careplus-collapsed', desktopCollapsed);
+    setMobileOpen(false);
 
     const closeMobile = () => setMobileOpen(false);
     sidebar.querySelectorAll('a').forEach((link) => link.addEventListener('click', closeMobile));
