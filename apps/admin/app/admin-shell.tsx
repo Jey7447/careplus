@@ -63,7 +63,7 @@ export default function AdminShell() {
 
       <button
         type="button"
-        className="careplus-desktop-toggle"
+        className={`careplus-desktop-toggle${desktopCollapsed ? " is-collapsed" : ""}`}
         onClick={() => setDesktopCollapsed((collapsed) => !collapsed)}
         aria-label={desktopCollapsed ? 'Show sidebar' : 'Hide sidebar'}
         title={desktopCollapsed ? 'Show sidebar' : 'Hide sidebar'}
