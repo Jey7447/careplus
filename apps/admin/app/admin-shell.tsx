@@ -2,16 +2,21 @@
 
 import { HeartPulse, Menu, PanelLeftClose, PanelLeftOpen, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 
 export default function AdminShell() {
+  const pathname = usePathname();
   const [ready, setReady] = useState(false);
   const [hasSidebar, setHasSidebar] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [desktopCollapsed, setDesktopCollapsed] = useState(false);
 
   useEffect(() => {
+    setReady(false);
     const sidebar = document.querySelector<HTMLElement>('aside nav')?.closest('aside');
     if (!sidebar) return;
+
+    // The root layout persists during client navigation, so re-bind when the route changes.
 
     setHasSidebar(true);
     sidebar.classList.add('careplus-sidebar');
@@ -25,7 +30,7 @@ export default function AdminShell() {
       sidebar.classList.remove('careplus-sidebar', 'careplus-collapsed', 'careplus-mobile-open');
       sidebar.querySelectorAll('a').forEach((link) => link.removeEventListener('click', closeMobile));
     };
-  }, []);
+  }, [pathname]);
 
   useEffect(() => {
     const sidebar = document.querySelector<HTMLElement>('aside.careplus-sidebar');
