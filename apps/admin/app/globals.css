@@ -61,3 +61,185 @@ html.dark .bg-red-50\/60 { background-color: #3f1d24 !important; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 }
+
+
+/* Responsive admin navigation shell. The existing page sidebars are enhanced
+   here so every admin screen gets the same mobile drawer and desktop collapse. */
+.careplus-desktop-toggle {
+  position: fixed;
+  top: 18px;
+  left: 268px;
+  z-index: 80;
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.96);
+  color: #334155;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+  cursor: pointer;
+  transition: left 220ms ease, transform 180ms ease, background-color 180ms ease, color 180ms ease;
+}
+.careplus-desktop-toggle:hover { transform: translateY(-1px); background: #f8fafc; color: #0f172a; }
+.careplus-desktop-toggle.is-collapsed { left: 88px; }
+
+.careplus-mobile-header,
+.careplus-sidebar-backdrop { display: none; }
+
+@media (min-width: 1024px) {
+  aside.careplus-sidebar {
+    width: 256px !important;
+    flex-basis: 256px !important;
+    overflow: hidden;
+    transition: width 220ms ease, flex-basis 220ms ease;
+  }
+
+  aside.careplus-sidebar.careplus-collapsed {
+    width: 76px !important;
+    flex-basis: 76px !important;
+  }
+
+  aside.careplus-sidebar.careplus-collapsed nav a {
+    justify-content: center;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  aside.careplus-sidebar.careplus-collapsed nav a > span:not([aria-hidden="true"]) {
+    display: none;
+  }
+
+  aside.careplus-sidebar.careplus-collapsed nav a > svg:last-child {
+    display: none;
+  }
+
+  aside.careplus-sidebar.careplus-collapsed > div:first-child {
+    justify-content: center;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  aside.careplus-sidebar.careplus-collapsed > div:first-child > div:last-child,
+  aside.careplus-sidebar.careplus-collapsed > div:last-child {
+    display: none;
+  }
+
+  aside.careplus-sidebar.careplus-collapsed nav {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+}
+
+@media (max-width: 1023px) {
+  body:has(.careplus-mobile-header) {
+    overflow-x: hidden;
+  }
+
+  body:has(.careplus-mobile-header) main {
+    padding-top: 64px;
+  }
+
+  .careplus-mobile-header {
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 70;
+    display: flex;
+    height: 64px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 14px;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+    background: rgba(255, 255, 255, 0.94);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+
+  .careplus-mobile-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #0f172a;
+  }
+
+  .careplus-mobile-brand-icon {
+    display: grid;
+    width: 34px;
+    height: 34px;
+    place-items: center;
+    border-radius: 11px;
+    background: #020617;
+    color: white;
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.16);
+  }
+
+  .careplus-menu-button {
+    display: grid;
+    width: 40px;
+    height: 40px;
+    place-items: center;
+    border: 1px solid rgba(148, 163, 184, 0.28);
+    border-radius: 12px;
+    background: #ffffff;
+    color: #0f172a;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.1);
+    cursor: pointer;
+  }
+
+  aside.careplus-sidebar {
+    position: fixed !important;
+    z-index: 75;
+    inset: 0 auto 0 0;
+    display: flex !important;
+    width: min(82vw, 292px) !important;
+    flex-basis: auto !important;
+    flex-direction: column;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    transform: translateX(-105%);
+    transition: transform 240ms ease;
+    box-shadow: 16px 0 40px rgba(15, 23, 42, 0.18);
+  }
+
+  aside.careplus-sidebar.careplus-mobile-open {
+    transform: translateX(0);
+  }
+
+  .careplus-desktop-toggle {
+    display: none;
+  }
+
+  .careplus-sidebar-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 74;
+    display: block;
+    border: 0;
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+  }
+
+  html.dark .careplus-mobile-header {
+    border-color: #273244;
+    background: rgba(11, 17, 32, 0.94);
+  }
+
+  html.dark .careplus-mobile-brand { color: #f8fafc; }
+
+  html.dark .careplus-menu-button {
+    border-color: #334155;
+    background: #111827;
+    color: #e5e7eb;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .careplus-desktop-toggle,
+  aside.careplus-sidebar {
+    transition: none !important;
+  }
+}
