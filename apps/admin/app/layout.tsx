@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import ThemeToggle from './theme-toggle';
 import AdminFeedbackNavPatch from './admin-feedback-nav-patch';
+import AdminShell from './admin-shell';
 
 export const metadata: Metadata = {
   title: 'CarePlus Medical Centre',
@@ -14,6 +15,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         {children}
         <AdminFeedbackNavPatch />
+        <AdminShell />
         <ThemeToggle />
       </body>
     </html>
