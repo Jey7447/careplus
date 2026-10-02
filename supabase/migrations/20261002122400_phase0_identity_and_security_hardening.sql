@@ -26,7 +26,7 @@ GRANT EXECUTE ON FUNCTION public.create_feedback_request_on_completion() TO post
 -- Admin appointment creation remains callable by authenticated users because the
 -- function itself enforces is_careplus_admin(). Anonymous access is removed.
 REVOKE EXECUTE ON FUNCTION public.create_admin_appointment(bigint,text,text,text,date,gender_type,text,text,text,text,bigint,date,time,appointment_type,text,text) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.create_admin_appointment(bigint,text,text,text,date,time,appointment_type,text,text) TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.create_admin_appointment(bigint,text,text,text,date,gender_type,text,text,text,text,bigint,date,time,appointment_type,text,text) TO authenticated, service_role;
 
 -- Admin-only dashboard statistics: authenticated access is retained for the app,
 -- while the function itself now enforces the admin role.
