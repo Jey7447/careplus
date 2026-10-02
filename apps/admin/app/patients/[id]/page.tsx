@@ -1,6 +1,9 @@
 import {
   ArrowLeft,
   Bell,
+  Activity,
+  AlertTriangle,
+  ClipboardCheck,
   CalendarDays,
   CheckCircle2,
   ClipboardList,
@@ -89,7 +92,7 @@ export default async function PatientDetailsPage({ params }: PageProps) {
     .maybeSingle();
   if (patientError || !patient) notFound();
 
-  const [{ data: appointments }, { data: notifications }] = await Promise.all([
+  const [{ data: appointments }, { data: notifications }, { data: vitals }, { data: diagnoses }, { data: allergies }] = await Promise.all([
     supabase
       .from('appointments')
       .select('appointment_id, appointment_date, appointment_time, appointment_type, appointment_status, reason_for_visit, doctor_id')
@@ -103,6 +106,25 @@ export default async function PatientDetailsPage({ params }: PageProps) {
       .eq('recipient_contact', patient.phone_number ?? '')
       .order('notification_id', { ascending: false })
       .limit(100),
+    supabase
+      .from('encounter_vitals')
+      .select('vital_id, encounter_id, recorded_at, systolic_bp, diastolic_bp, pulse_rate, temperature_c, respiratory_rate, spo2_percent, weight_kg, height_cm, bmi, pain_score')
+      .eq('patient_id', patientId)
+      .order('recorded_at', { ascending: false })
+      .limit(12),
+    supabase
+      .from('encounter_diagnoses')
+      .select('encounter_diagnosis_id, encounter_id, diagnosis_text, severity, is_primary, diagnosed_at, notes')
+      .eq('patient_id', patientId)
+      .order('diagnosed_at', { ascending: false })
+      .limit(20),
+    supabase
+      .from('patient_allergies')
+      .select('allergy_id, allergen, allergy_type, reaction, severity, status, onset_date, notes, created_at')
+      .eq('patient_id', patientId)
+      .order('status', { ascending: true })
+      .order('created_at', { ascending: false })
+      .limit(50),
   ]);
 
   const doctorIds = [...new Set((appointments ?? []).map((appointment) => appointment.doctor_id))];
@@ -182,6 +204,35 @@ export default async function PatientDetailsPage({ params }: PageProps) {
                 </div>
               </section>
             </div>
+
+            <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-xl bg-slate-100"><Activity size={18} /></div><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Clinical record</p><h2 className="mt-1 font-semibold">Vitals, diagnoses & allergies</h2><p className="mt-1 text-sm text-slate-500">Clinical information now connected to the patient's longitudinal record.</p></div></div>
+                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600">{(diagnoses ?? []).length} diagnoses · {(allergies ?? []).filter((a) => a.status === 'Active').length} active allergies</span>
+              </div>
+              <div className="mt-6 grid gap-4 xl:grid-cols-3">
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                  <div className="flex items-center justify-between"><p className="text-sm font-semibold">Latest vitals</p><Activity size={16} className="text-slate-400" /></div>
+                  {vitals?.[0] ? <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
+                    <div><p className="text-xs text-slate-500">Blood pressure</p><p className="font-semibold">{vitals[0].systolic_bp ?? '—'}/{vitals[0].diastolic_bp ?? '—'} mmHg</p></div>
+                    <div><p className="text-xs text-slate-500">Pulse</p><p className="font-semibold">{vitals[0].pulse_rate ?? '—'} bpm</p></div>
+                    <div><p className="text-xs text-slate-500">Temperature</p><p className="font-semibold">{vitals[0].temperature_c ?? '—'} °C</p></div>
+                    <div><p className="text-xs text-slate-500">SpO₂</p><p className="font-semibold">{vitals[0].spo2_percent ?? '—'}%</p></div>
+                    <div><p className="text-xs text-slate-500">Weight</p><p className="font-semibold">{vitals[0].weight_kg ?? '—'} kg</p></div>
+                    <div><p className="text-xs text-slate-500">Pain</p><p className="font-semibold">{vitals[0].pain_score ?? '—'}/10</p></div>
+                    <p className="col-span-2 text-xs text-slate-400">Recorded {formatDateTime(vitals[0].recorded_at)}</p>
+                  </div> : <p className="mt-4 text-sm text-slate-500">No vitals recorded yet.</p>}
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                  <div className="flex items-center justify-between"><p className="text-sm font-semibold">Recent diagnoses</p><ClipboardCheck size={16} className="text-slate-400" /></div>
+                  <div className="mt-4 space-y-3">{(diagnoses ?? []).slice(0,4).map((d) => <div key={d.encounter_diagnosis_id} className="flex items-start justify-between gap-3"><div><p className="text-sm font-medium">{d.diagnosis_text}</p><p className="mt-1 text-xs text-slate-500">{d.is_primary ? 'Primary · ' : ''}{d.severity ?? 'Severity not recorded'}</p></div><span className="text-xs text-slate-400">{formatDate(d.diagnosed_at)}</span></div>)}{(diagnoses ?? []).length === 0 && <p className="text-sm text-slate-500">No diagnoses recorded yet.</p>}</div>
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                  <div className="flex items-center justify-between"><p className="text-sm font-semibold">Allergies</p><AlertTriangle size={16} className="text-slate-400" /></div>
+                  <div className="mt-4 space-y-3">{(allergies ?? []).filter((a) => a.status === 'Active').slice(0,4).map((a) => <div key={a.allergy_id}><div className="flex items-center justify-between gap-3"><p className="text-sm font-medium">{a.allergen}</p><span className="rounded-full bg-red-50 px-2 py-1 text-[11px] font-medium text-red-700">{a.severity ?? 'Unspecified'}</span></div><p className="mt-1 text-xs text-slate-500">{a.reaction ?? 'Reaction not recorded'}{a.allergy_type ? ' · ' + a.allergy_type : ''}</p></div>)}{(allergies ?? []).filter((a) => a.status === 'Active').length === 0 && <p className="text-sm text-slate-500">No active allergies recorded.</p>}</div>
+                </div>
+              </div>
+            </section>
 
             <section className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-950 text-white shadow-sm">
               <div className="border-b border-white/10 px-6 py-5"><div className="flex items-center justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Care history</p><h2 className="mt-1 text-lg font-semibold">Appointment history</h2><p className="mt-1 text-sm text-slate-400">Every appointment associated with this patient.</p></div><span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">{appointments?.length ?? 0} records</span></div></div>
