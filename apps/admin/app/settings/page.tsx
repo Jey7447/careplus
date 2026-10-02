@@ -1,5 +1,6 @@
 import { BarChart3, Bell, CalendarDays, CheckCircle2, HeartPulse, LayoutDashboard, Link2, LockKeyhole, Settings as SettingsIcon, ShieldCheck, Stethoscope, UserPlus, Users } from 'lucide-react';
 import Link from 'next/link';
+import DoctorLinkForm from './doctor-link-form';
 import { redirect } from 'next/navigation';
 import { createClient } from '../../lib/supabase/server';
 
@@ -48,6 +49,7 @@ export default async function SettingsPage() {
                   return <div key={doctor.doctor_id} className="rounded-xl border border-slate-200 p-4">
                     <div className="flex items-start justify-between gap-4"><div><p className="font-medium">Dr. {doctor.first_name} {doctor.last_name}</p><p className="mt-1 text-sm text-slate-500">{doctor.specialty ?? 'Specialty not recorded'}</p></div><span className={`rounded-full px-2.5 py-1 text-xs font-medium ${linked ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>{linked ? 'Linked' : 'Awaiting account'}</span></div>
                     <div className="mt-4 flex items-center gap-2 text-xs text-slate-500">{linked ? <><CheckCircle2 size={14} className="text-emerald-600" /> Doctor identity linked</> : <><UserPlus size={14} /> Create/authenticate account, then link it</>}</div>
+                    {!linked && <DoctorLinkForm doctorId={doctor.doctor_id} />}
                   </div>;
                 })}
               </div>
