@@ -1,6 +1,7 @@
 'use client';
 
 import { HeartPulse, Menu, PanelLeftClose, PanelLeftOpen, X } from 'lucide-react';
+import SignOutButton from './sign-out-button';
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 
@@ -77,6 +78,10 @@ export default function AdminShell() {
       >
         {desktopCollapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
       </button>
+
+      <div className={`careplus-signout${desktopCollapsed ? ' is-collapsed' : ''}`}>
+        <SignOutButton />
+      </div>
 
       {mobileOpen && (
         <button
