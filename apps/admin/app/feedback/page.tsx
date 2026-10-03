@@ -14,14 +14,13 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { createClient } from '../../lib/supabase/server';
 
-const navigation = [
-  ['Dashboard', '/', HeartPulse],
-  ['Appointments', '/appointments', HeartPulse],
-  ['Patients', '/patients', Users],
-  ['Doctors', '/doctors', Stethoscope],
-  ['Notifications', '/notifications', MessageSquareText],
-  ['Feedback', '/feedback', BarChart3],
-  ['Settings', '/settings', Settings],
+const ADMIN_NAVIGATION = [
+  ['Dashboard', '/dashboard', HeartPulse], ['Appointments', '/appointments', HeartPulse], ['Patients', '/patients', Users],
+  ['Doctors', '/doctors', Stethoscope], ['Notifications', '/notifications', MessageSquareText], ['Feedback', '/feedback', BarChart3], ['Settings', '/settings', Settings],
+] as const;
+const DOCTOR_NAVIGATION = [
+  ['Dashboard', '/doctor-dashboard', HeartPulse], ['Appointments', '/appointments', HeartPulse], ['Patients', '/patients', Users],
+  ['Feedback', '/feedback', BarChart3], ['Settings', '/settings', Settings],
 ] as const;
 
 type SearchParams = Promise<{ status?: string; search?: string }>;
@@ -83,15 +82,12 @@ export default async function FeedbackPage({ searchParams }: { searchParams: Sea
   const { data: claimsData } = await supabase.auth.getClaims();
   if (!claimsData?.claims?.sub) redirect('/login');
 
-  const { data: staffRecord, error: staffError } = await supabase
-    .from('careplus_staff_users')
-    .select('id, role, active')
-    .eq('auth_user_id', claimsData.claims.sub)
-    .eq('active', true)
-    .eq('role', 'admin')
-    .maybeSingle();
-
-  if (staffError || !staffRecord) redirect('/unauthorized');
+  const { data: staffRecord, error: staffError } = await supabase.rpc('current_careplus_staff');
+  if (staffError || staffRecord?.active !== true || !['admin','doctor'].includes(staffRecord?.role ?? '') || (staffRecord?.role === 'doctor' && !staffRecord?.doctor_id)) redirect('/unauthorized');
+  const isAdmin = staffRecord.role === 'admin';
+  const isDoctor = staffRecord.role === 'doctor';
+  const doctorId = staffRecord.doctor_id ?? null;
+  const navigation = isDoctor && !isAdmin ? DOCTOR_NAVIGATION : ADMIN_NAVIGATION;
 
   const params = await searchParams;
   const status = params.status && params.status !== 'All' ? params.status : null;
@@ -105,6 +101,10 @@ export default async function FeedbackPage({ searchParams }: { searchParams: Sea
     .select('feedback_id, appointment_id, patient_id, doctor_id, branch_id, overall_rating, doctor_rating, facility_rating, waiting_time_rating, comments, feedback_category, triage_status, follow_up_status, submitted_at')
     .order('submitted_at', { ascending: false })
     .limit(100);
+
+  if (isDoctor && doctorId) {
+    feedbackQuery = feedbackQuery.eq('doctor_id', doctorId);
+  }
 
   if (triageFilter) {
     feedbackQuery = feedbackQuery.eq('triage_status', triageFilter);

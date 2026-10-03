@@ -18,13 +18,13 @@ import { notFound, redirect } from 'next/navigation';
 import AppointmentActions from '../appointment-actions';
 import { createClient } from '../../../lib/supabase/server';
 
-const navigation = [
-  ['Dashboard', '/', HeartPulse],
-  ['Appointments', '/appointments', CalendarDays],
-  ['Patients', '/patients', Users],
-  ['Doctors', '/doctors', Stethoscope],
-  ['Notifications', '/notifications', ClipboardList],
-  ['Settings', '/settings', Settings],
+const ADMIN_NAVIGATION = [
+  ['Dashboard', '/dashboard', HeartPulse], ['Appointments', '/appointments', CalendarDays], ['Patients', '/patients', Users],
+  ['Doctors', '/doctors', Stethoscope], ['Notifications', '/notifications', ClipboardList], ['Settings', '/settings', Settings],
+] as const;
+const DOCTOR_NAVIGATION = [
+  ['Dashboard', '/doctor-dashboard', HeartPulse], ['Appointments', '/appointments', CalendarDays], ['Patients', '/patients', Users],
+  ['Feedback', '/feedback', ClipboardList], ['Settings', '/settings', Settings],
 ] as const;
 
 type PageProps = { params: Promise<{ id: string }> };
@@ -115,23 +115,28 @@ export default async function AppointmentDetailsPage({ params }: PageProps) {
   const { data: claimsData } = await supabase.auth.getClaims();
   if (!claimsData?.claims?.sub) redirect('/login');
 
-  const { data: staffRecord, error: staffError } = await supabase.from('careplus_staff_users').select('id, role, active').eq('auth_user_id', claimsData.claims.sub).eq('active', true).eq('role', 'admin').maybeSingle();
-  if (staffError || !staffRecord) redirect('/unauthorized');
+  const { data: staffRecord, error: staffError } = await supabase.rpc('current_careplus_staff');
+  if (staffError || staffRecord?.active !== true || !['admin','doctor'].includes(staffRecord?.role ?? '') || (staffRecord?.role === 'doctor' && !staffRecord?.doctor_id)) redirect('/unauthorized');
+  const isAdmin = staffRecord.role === 'admin';
+  const isDoctor = staffRecord.role === 'doctor';
+  const doctorId = staffRecord.doctor_id ?? null;
+  const navigation = isDoctor && !isAdmin ? DOCTOR_NAVIGATION : ADMIN_NAVIGATION;
 
   const { id } = await params;
   const appointmentId = Number(id);
   if (!Number.isSafeInteger(appointmentId) || appointmentId < 1) notFound();
 
-  const { data: appointment, error: appointmentError } = await supabase.from('appointments').select('appointment_id, appointment_date, appointment_time, appointment_type, appointment_status, reason_for_visit, notes, created_at, patient_id, doctor_id, branch_id').eq('appointment_id', appointmentId).maybeSingle();
+  const appointmentQuery = supabase.from('appointments').select('appointment_id, appointment_date, appointment_time, appointment_type, appointment_status, reason_for_visit, notes, created_at, patient_id, doctor_id, branch_id').eq('appointment_id', appointmentId);
+  const { data: appointment, error: appointmentError } = await (isDoctor && doctorId ? appointmentQuery.eq('doctor_id', doctorId).maybeSingle() : appointmentQuery.maybeSingle());
   if (appointmentError || !appointment) notFound();
 
   const [{ data: patient }, { data: doctor }, { data: branch }, { data: notifications }, { data: auditLogs }, { data: doctors }] = await Promise.all([
     supabase.from('patients').select('patient_id, first_name, last_name, phone_number, email, address').eq('patient_id', appointment.patient_id).maybeSingle(),
     supabase.from('doctors').select('doctor_id, first_name, last_name, specialty, phone, email, active').eq('doctor_id', appointment.doctor_id).maybeSingle(),
     supabase.from('branches').select('*').eq('branch_id', appointment.branch_id).maybeSingle(),
-    supabase.from('notifications').select('notification_id, channel, notification_type, status, sent_at, delivered_at, recipient_contact').eq('appointment_id', appointment.appointment_id).order('notification_id', { ascending: false }),
-    supabase.from('audit_logs').select('audit_id, action, old_values, new_values, changed_at').eq('table_name', 'appointments').eq('record_id', appointment.appointment_id).order('changed_at', { ascending: false }).limit(50),
-    supabase.from('doctors').select('doctor_id, first_name, last_name'),
+    isAdmin ? supabase.from('notifications').select('notification_id, channel, notification_type, status, sent_at, delivered_at, recipient_contact').eq('appointment_id', appointment.appointment_id).order('notification_id', { ascending: false }) : Promise.resolve({ data: [] }),
+    isAdmin ? supabase.from('audit_logs').select('audit_id, action, old_values, new_values, changed_at').eq('table_name', 'appointments').eq('record_id', appointment.appointment_id).order('changed_at', { ascending: false }).limit(50) : Promise.resolve({ data: [] }),
+    isAdmin ? supabase.from('doctors').select('doctor_id, first_name, last_name') : Promise.resolve({ data: [] }),
   ]);
 
   const email = typeof claimsData.claims.email === 'string' ? claimsData.claims.email : 'Authenticated staff';
@@ -155,7 +160,7 @@ export default async function AppointmentDetailsPage({ params }: PageProps) {
         <div className="mx-auto max-w-7xl space-y-6 p-6 lg:p-8">
           <section className="rounded-2xl border border-[var(--border)] bg-white p-6"><div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between"><div><p className="text-sm text-slate-500">Appointment status</p><div className="mt-2 flex flex-wrap items-center gap-3"><h2 className="text-xl font-semibold text-slate-900">{patientName}</h2><span className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusClass(appointment.appointment_status)}`}>{appointment.appointment_status}</span></div><p className="mt-1 text-sm text-slate-500">{appointment.appointment_type}</p></div><div className="rounded-xl bg-slate-50 px-4 py-3 text-left md:text-right"><p className="text-xs text-slate-500">Appointment date & time</p><p className="mt-1 text-sm font-medium text-slate-900">{formatDate(appointment.appointment_date)}</p><p className="mt-1 text-sm text-slate-600">{formatTime(appointment.appointment_time)} · Africa/Lagos</p></div></div></section>
 
-          <AppointmentActions appointmentId={appointment.appointment_id} currentStatus={appointment.appointment_status} />
+          <AppointmentActions appointmentId={appointment.appointment_id} currentStatus={appointment.appointment_status} allowReschedule={isAdmin} />
 
           <div className="grid gap-6 xl:grid-cols-2">
             <section className="rounded-2xl border border-[var(--border)] bg-white p-6"><div className="flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-xl bg-slate-100"><UserRound size={19} /></div><div><h2 className="font-semibold">Patient information</h2><p className="text-sm text-slate-500">Registered patient details</p></div></div><div className="mt-6 grid gap-5 sm:grid-cols-2"><div><p className="text-xs text-slate-500">Full name</p><p className="mt-1 text-sm font-medium">{patientName}</p></div><div><p className="text-xs text-slate-500">Patient ID</p><p className="mt-1 text-sm font-medium">#{patient?.patient_id ?? appointment.patient_id}</p></div><div><p className="text-xs text-slate-500">Phone</p><p className="mt-1 flex items-center gap-2 text-sm"><Phone size={14} />{patient?.phone_number ?? 'Not recorded'}</p></div><div><p className="text-xs text-slate-500">Email</p><p className="mt-1 flex items-center gap-2 break-all text-sm"><Mail size={14} />{patient?.email ?? 'Not recorded'}</p></div><div className="sm:col-span-2"><p className="text-xs text-slate-500">Address</p><p className="mt-1 flex items-start gap-2 text-sm"><MapPin size={14} className="mt-0.5 shrink-0" />{patient?.address ?? 'Not recorded'}</p></div><div className="sm:col-span-2"><Link href={`/patients/${patient?.patient_id ?? appointment.patient_id}`} className="text-sm font-medium text-slate-700 hover:text-slate-900 outline-none focus:outline-none focus-visible:outline-none">View full patient record →</Link></div></div></section>
