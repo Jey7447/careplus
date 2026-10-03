@@ -43,25 +43,15 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
-  const [{ data: adminRecord, error: adminError }, { data: doctorRecord, error: doctorError }] = await Promise.all([
-    supabase
-      .from('careplus_staff_users')
-      .select('id')
-      .eq('auth_user_id', claims.sub)
-      .eq('active', true)
-      .eq('role', 'admin')
-      .maybeSingle(),
-    supabase
-      .from('careplus_staff_users')
-      .select('id, doctor_id')
-      .eq('auth_user_id', claims.sub)
-      .eq('active', true)
-      .eq('role', 'doctor')
-      .maybeSingle(),
+  const [{ data: adminRole }, { data: doctorRole }, { data: doctorId }] = await Promise.all([
+    supabase.rpc('has_careplus_role', { required_role: 'admin' }),
+    supabase.rpc('has_careplus_role', { required_role: 'doctor' }),
+    supabase.rpc('current_careplus_doctor_id'),
   ]);
 
-  const isCarePlusAdmin = !adminError && Boolean(adminRecord);
-  const isCarePlusDoctor = !doctorError && Boolean(doctorRecord?.doctor_id);
+  const isCarePlusAdmin = adminRole === true;
+  const isCarePlusDoctor = doctorRole === true && Boolean(doctorId);
+
   const isDoctorRoute = pathname === '/doctor-dashboard' || pathname.startsWith('/doctor-dashboard/');
 
   if (isDoctorRoute) {
