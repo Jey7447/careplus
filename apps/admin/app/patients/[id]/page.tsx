@@ -21,13 +21,13 @@ import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { createClient } from '../../../lib/supabase/server';
 
-const navigation = [
-  ['Dashboard', '/', LayoutDashboard],
-  ['Appointments', '/appointments', CalendarDays],
-  ['Patients', '/patients', Users],
-  ['Doctors', '/doctors', Stethoscope],
-  ['Notifications', '/notifications', ClipboardList],
-  ['Settings', '/settings', Settings],
+const ADMIN_NAVIGATION = [
+  ['Dashboard', '/', LayoutDashboard], ['Appointments', '/appointments', CalendarDays], ['Patients', '/patients', Users],
+  ['Doctors', '/doctors', Stethoscope], ['Notifications', '/notifications', ClipboardList], ['Settings', '/settings', Settings],
+] as const;
+const DOCTOR_NAVIGATION = [
+  ['Dashboard', '/doctor-dashboard', LayoutDashboard], ['Appointments', '/appointments', CalendarDays], ['Patients', '/patients', Users],
+  ['Feedback', '/feedback', ClipboardList], ['Settings', '/settings', Settings],
 ] as const;
 
 type PageProps = { params: Promise<{ id: string }> };
@@ -72,14 +72,12 @@ export default async function PatientDetailsPage({ params }: PageProps) {
   const { data: claimsData } = await supabase.auth.getClaims();
   if (!claimsData?.claims?.sub) redirect('/login');
 
-  const { data: staffRecord, error: staffError } = await supabase
-    .from('careplus_staff_users')
-    .select('id, role, active')
-    .eq('auth_user_id', claimsData.claims.sub)
-    .eq('active', true)
-    .eq('role', 'admin')
-    .maybeSingle();
-  if (staffError || !staffRecord) redirect('/unauthorized');
+  const { data: staffRecord, error: staffError } = await supabase.rpc('current_careplus_staff');
+  if (staffError || staffRecord?.active !== true || !['admin','doctor'].includes(staffRecord?.role ?? '') || (staffRecord?.role === 'doctor' && !staffRecord?.doctor_id)) redirect('/unauthorized');
+  const isAdmin = staffRecord.role === 'admin';
+  const isDoctor = staffRecord.role === 'doctor';
+  const doctorId = staffRecord.doctor_id ?? null;
+  const navigation = isDoctor && !isAdmin ? DOCTOR_NAVIGATION : ADMIN_NAVIGATION;
 
   const { id } = await params;
   const patientId = Number(id);
@@ -100,12 +98,9 @@ export default async function PatientDetailsPage({ params }: PageProps) {
       .order('appointment_date', { ascending: false })
       .order('appointment_time', { ascending: false })
       .limit(100),
-    supabase
-      .from('notifications')
-      .select('notification_id, appointment_id, channel, status, notification_type, message, sent_at, delivered_at')
-      .eq('recipient_contact', patient.phone_number ?? '')
-      .order('notification_id', { ascending: false })
-      .limit(100),
+    isAdmin
+      ? supabase.from('notifications').select('notification_id, appointment_id, channel, status, notification_type, message, sent_at, delivered_at').eq('recipient_contact', patient.phone_number ?? '').order('notification_id', { ascending: false }).limit(100)
+      : Promise.resolve({ data: [] }),
     supabase
       .from('encounter_vitals')
       .select('vital_id, encounter_id, recorded_at, systolic_bp, diastolic_bp, pulse_rate, temperature_c, respiratory_rate, spo2_percent, weight_kg, height_cm, bmi, pain_score')
