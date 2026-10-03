@@ -12,6 +12,12 @@ export default function UnauthorizedPage() {
         <p className="mt-3 text-xs leading-5 text-slate-500">
           Contact a CarePlus administrator if you believe you should have access.
         </p>
+        <Link
+          href="/login"
+          className="mt-6 inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800"
+        >
+          Return to Sign In
+        </Link>
       </section>
     </main>
   );
