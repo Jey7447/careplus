@@ -40,17 +40,9 @@ export default async function DoctorDashboardPage() {
   const { data: claimsData } = await supabase.auth.getClaims();
   if (!claimsData?.claims?.sub) redirect('/login');
 
-  const { data: staff } = await supabase
-    .from('careplus_staff_users')
-    .select('id, doctor_id, role, active')
-    .eq('auth_user_id', claimsData.claims.sub)
-    .eq('active', true)
-    .eq('role', 'doctor')
-    .maybeSingle();
+  const { data: doctorId } = await supabase.rpc('current_careplus_doctor_id');
 
-  if (!staff?.doctor_id) redirect('/unauthorized');
-
-  const doctorId = staff.doctor_id;
+  if (!doctorId) redirect('/unauthorized');
   const today = new Date().toISOString().slice(0, 10);
 
   const [{ data: doctor }, { data: appointments }] = await Promise.all([
