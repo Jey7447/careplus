@@ -40,15 +40,19 @@ export default async function DoctorDashboardPage() {
   const { data: claimsData } = await supabase.auth.getClaims();
   if (!claimsData?.claims?.sub) redirect('/login');
 
-  const { data: staff } = await supabase
-    .from('careplus_staff_users')
-    .select('id, doctor_id, role, active')
-    .eq('auth_user_id', claimsData.claims.sub)
-    .eq('active', true)
-    .eq('role', 'doctor')
-    .maybeSingle();
+  // Resolve the authenticated staff identity through the SECURITY DEFINER
+  // helper. Direct reads from careplus_staff_users are protected by RLS and
+  // can make a valid doctor appear missing inside this server component.
+  const { data: staff, error: staffError } = await supabase.rpc('current_careplus_staff');
 
-  if (!staff?.doctor_id) redirect('/unauthorized');
+  if (
+    staffError ||
+    staff?.active !== true ||
+    staff?.role !== 'doctor' ||
+    !staff?.doctor_id
+  ) {
+    redirect('/unauthorized');
+  }
 
   const doctorId = staff.doctor_id;
   const today = new Date().toISOString().slice(0, 10);
