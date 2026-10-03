@@ -276,7 +276,7 @@ html.dark .bg-red-50\/60 { background-color: #3f1d24 !important; }
     transform: translateX(-120%);
     transition: transform 220ms ease;
   }
-  aside.careplus-mobile-open ~ .careplus-signout {
+  body.careplus-menu-open .careplus-signout {
     transform: translateX(0);
   }
 }
