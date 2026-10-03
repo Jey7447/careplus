@@ -40,24 +40,23 @@ export default async function DoctorDashboardPage() {
   const { data: claimsData } = await supabase.auth.getClaims();
   if (!claimsData?.claims?.sub) redirect('/login');
 
-  // Resolve the authenticated staff identity through the SECURITY DEFINER
-  // helper. Direct reads from careplus_staff_users are protected by RLS and
-  // can make a valid doctor appear missing inside this server component.
-  const { data: staff, error: staffError } = await supabase.rpc('current_careplus_staff');
+  // Resolve the doctor ID through the SECURITY DEFINER scalar helper.
+  // This avoids depending on the shape of a composite-row RPC response.
+  const { data: doctorId, error: doctorIdError } = await supabase.rpc('current_careplus_doctor_id');
 
-  if (
-    staffError ||
-    staff?.active !== true ||
-    staff?.role !== 'doctor' ||
-    !staff?.doctor_id
-  ) {
+  if (doctorIdError || !doctorId) {
     redirect('/unauthorized');
   }
 
-  const doctorId = staff.doctor_id;
-  const today = new Date().toISOString().slice(0, 10);
+  // Use the CarePlus local timezone rather than UTC for the clinical queue.
+  const today = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Africa/Lagos',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date());
 
-  const [{ data: doctor }, { data: appointments }] = await Promise.all([
+  const [{ data: doctor, error: doctorError }, { data: appointments, error: appointmentsError }] = await Promise.all([
     supabase.from('doctors').select('doctor_id, first_name, last_name, specialty').eq('doctor_id', doctorId).maybeSingle(),
     supabase
       .from('appointments')
@@ -69,12 +68,27 @@ export default async function DoctorDashboardPage() {
       .limit(50),
   ]);
 
+  if (doctorError) {
+    console.error('Doctor dashboard: failed to load doctor profile', doctorError);
+    throw new Error('Unable to load your doctor profile.');
+  }
+
+  if (appointmentsError) {
+    console.error('Doctor dashboard: failed to load appointments', appointmentsError);
+    throw new Error('Unable to load your appointments.');
+  }
+
   if (!doctor) redirect('/unauthorized');
 
   const patientIds = [...new Set((appointments ?? []).map((a) => a.patient_id))];
-  const { data: patients } = patientIds.length
+  const { data: patients, error: patientsError } = patientIds.length
     ? await supabase.from('patients').select('patient_id, first_name, last_name, gender, date_of_birth').in('patient_id', patientIds)
-    : { data: [] };
+    : { data: [], error: null };
+
+  if (patientsError) {
+    console.error('Doctor dashboard: failed to load patients', patientsError);
+    throw new Error('Unable to load your assigned patients.');
+  }
 
   const patientMap = new Map((patients ?? []).map((p) => [p.patient_id, p]));
   const todayQueue = (appointments ?? []).filter((a) => a.appointment_date === today);
@@ -82,9 +96,15 @@ export default async function DoctorDashboardPage() {
   const upcoming = (appointments ?? []).filter((a) => ['Scheduled', 'Confirmed'].includes(a.appointment_status));
 
   const encounterIds = todayQueue.map((a) => a.appointment_id);
-  const { data: encounters } = encounterIds.length
+  const { data: encounters, error: encountersError } = encounterIds.length
     ? await supabase.from('encounters').select('encounter_id, appointment_id, patient_id, status, chief_complaint, started_at').in('appointment_id', encounterIds)
-    : { data: [] };
+    : { data: [], error: null };
+
+  if (encountersError) {
+    console.error('Doctor dashboard: failed to load encounters', encountersError);
+    throw new Error('Unable to load your clinical encounters.');
+  }
+
   const encounterMap = new Map((encounters ?? []).map((e) => [e.appointment_id, e]));
 
   return (
