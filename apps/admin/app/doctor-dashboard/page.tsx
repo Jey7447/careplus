@@ -8,6 +8,7 @@ import {
   HeartPulse,
   LayoutDashboard,
   LogOut,
+  MessageSquareText,
   Pill,
   Settings,
   Stethoscope,
@@ -119,6 +120,7 @@ export default async function DoctorDashboardPage() {
             <Link href="/doctor-dashboard" className="mb-1 flex items-center gap-3 rounded-xl bg-slate-950 px-3 py-2.5 text-sm font-medium text-white shadow-sm"><Stethoscope size={18} />My Dashboard</Link>
             <Link href="/patients" className="mb-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-600 hover:bg-slate-50"><UserRound size={18} />Patients</Link>
             <Link href="/appointments" className="mb-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-600 hover:bg-slate-50"><CalendarDays size={18} />Appointments</Link>
+            <Link href="/feedback" className="mb-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-600 hover:bg-slate-50"><MessageSquareText size={18} />Feedback</Link>
             <Link href="/settings" className="mb-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-600 hover:bg-slate-50"><Settings size={18} />Settings</Link>
           </nav>
           <div className="border-t border-slate-200 p-5 text-xs text-slate-500">Clinical workspace</div>
