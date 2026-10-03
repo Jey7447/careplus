@@ -43,27 +43,26 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
-  const [{ data: adminRecord, error: adminError }, { data: doctorRecord, error: doctorError }] = await Promise.all([
-    supabase
-      .from('careplus_staff_users')
-      .select('id')
-      .eq('auth_user_id', claims.sub)
-      .eq('active', true)
-      .eq('role', 'admin')
-      .maybeSingle(),
-    supabase
-      .from('careplus_staff_users')
-      .select('id, doctor_id')
-      .eq('auth_user_id', claims.sub)
-      .eq('active', true)
-      .eq('role', 'doctor')
-      .maybeSingle(),
-  ]);
+  // Resolve the current CarePlus staff identity through a SECURITY DEFINER
+  // database helper. This avoids relying on direct reads of the staff table
+  // from middleware, where RLS can otherwise make an otherwise valid doctor
+  // account appear unauthorized.
+  const { data: staffRecord, error: staffError } = await supabase.rpc('current_careplus_staff');
 
-  const isCarePlusAdmin = !adminError && Boolean(adminRecord);
-  const isCarePlusDoctor = !doctorError && Boolean(doctorRecord?.doctor_id);
+  const isCarePlusAdmin =
+    !staffError &&
+    staffRecord?.active === true &&
+    staffRecord?.role === 'admin';
 
-  const isDoctorRoute = pathname === '/doctor-dashboard' || pathname.startsWith('/doctor-dashboard/');
+  const isCarePlusDoctor =
+    !staffError &&
+    staffRecord?.active === true &&
+    staffRecord?.role === 'doctor' &&
+    Boolean(staffRecord?.doctor_id);
+
+  const isDoctorRoute =
+    pathname === '/doctor-dashboard' ||
+    pathname.startsWith('/doctor-dashboard/');
 
   if (isDoctorRoute) {
     if (!isCarePlusDoctor && !isCarePlusAdmin) {
