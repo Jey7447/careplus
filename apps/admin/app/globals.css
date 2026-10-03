@@ -243,3 +243,43 @@ html.dark .bg-red-50\/60 { background-color: #3f1d24 !important; }
     transition: none !important;
   }
 }
+
+
+/* Shared sign-out control */
+.careplus-signout {
+  position: fixed;
+  z-index: 70;
+  left: 12px;
+  bottom: 14px;
+  width: 232px;
+  transition: left 220ms ease, width 220ms ease;
+}
+.careplus-signout > button {
+  border: 1px solid rgb(226 232 240);
+  background: rgb(255 255 255);
+  box-shadow: 0 8px 24px rgb(15 23 42 / 0.08);
+}
+.careplus-signout.is-collapsed {
+  left: 12px;
+  width: 52px;
+}
+.careplus-signout.is-collapsed > button {
+  justify-content: center;
+  padding-left: 0;
+  padding-right: 0;
+}
+@media (max-width: 1023px) {
+  .careplus-signout {
+    left: 18px;
+    bottom: 18px;
+    width: 260px;
+    transform: translateX(-120%);
+    transition: transform 220ms ease;
+  }
+  aside.careplus-mobile-open ~ .careplus-signout {
+    transform: translateX(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .careplus-signout { transition: none; }
+}
