@@ -63,7 +63,6 @@ export async function middleware(request: NextRequest) {
   const isCarePlusAdmin = !adminError && Boolean(adminRecord);
   const isCarePlusDoctor = !doctorError && Boolean(doctorRecord?.doctor_id);
   const isDoctorRoute = pathname === '/doctor-dashboard' || pathname.startsWith('/doctor-dashboard/');
-  const isAdminRoute = !isDoctorRoute && !isLoginPage && !isUnauthorizedPage;
 
   if (isDoctorRoute) {
     if (!isCarePlusDoctor && !isCarePlusAdmin) {
