@@ -6,7 +6,7 @@ export async function middleware(request: NextRequest) {
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
         getAll() {
@@ -43,15 +43,37 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
-  const { data: staffRecord, error: staffError } = await supabase
-    .from('careplus_staff_users')
-    .select('id')
-    .eq('auth_user_id', claims.sub)
-    .eq('active', true)
-    .eq('role', 'admin')
-    .maybeSingle();
+  const [{ data: adminRecord, error: adminError }, { data: doctorRecord, error: doctorError }] = await Promise.all([
+    supabase
+      .from('careplus_staff_users')
+      .select('id')
+      .eq('auth_user_id', claims.sub)
+      .eq('active', true)
+      .eq('role', 'admin')
+      .maybeSingle(),
+    supabase
+      .from('careplus_staff_users')
+      .select('id, doctor_id')
+      .eq('auth_user_id', claims.sub)
+      .eq('active', true)
+      .eq('role', 'doctor')
+      .maybeSingle(),
+  ]);
 
-  const isCarePlusAdmin = !staffError && Boolean(staffRecord);
+  const isCarePlusAdmin = !adminError && Boolean(adminRecord);
+  const isCarePlusDoctor = !doctorError && Boolean(doctorRecord?.doctor_id);
+  const isDoctorRoute = pathname === '/doctor-dashboard' || pathname.startsWith('/doctor-dashboard/');
+  const isAdminRoute = !isDoctorRoute && !isLoginPage && !isUnauthorizedPage;
+
+  if (isDoctorRoute) {
+    if (!isCarePlusDoctor && !isCarePlusAdmin) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/unauthorized';
+      return NextResponse.redirect(url);
+    }
+
+    return response;
+  }
 
   if (!isCarePlusAdmin) {
     if (!isUnauthorizedPage) {
