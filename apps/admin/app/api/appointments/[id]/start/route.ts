@@ -31,13 +31,17 @@ export async function POST(_request: Request, { params }: RouteContext) {
     }
 
     const encounter = Array.isArray(data) ? data[0] : data;
-    if (!encounter || typeof encounter.encounter_id !== 'number') {
+    // PostgreSQL bigint values can be serialized by PostgREST as strings.
+    // Normalize IDs at the API boundary before returning JSON to the client.
+    const encounterId = Number(encounter?.encounter_id);
+    const linkedAppointmentId = Number(encounter?.appointment_id);
+    if (!encounter || !Number.isSafeInteger(encounterId) || encounterId < 1 || !Number.isSafeInteger(linkedAppointmentId) || linkedAppointmentId !== appointmentId) {
       return NextResponse.json({ error: 'The encounter could not be confirmed after starting.' }, { status: 500 });
     }
 
     return NextResponse.json({
-      encounter_id: encounter.encounter_id,
-      appointment_id: encounter.appointment_id,
+      encounter_id: encounterId,
+      appointment_id: linkedAppointmentId,
       status: encounter.encounter_status,
       created_now: encounter.created_now,
     });
