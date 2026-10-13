@@ -10,6 +10,7 @@ import {
   UserRound,
 } from 'lucide-react';
 import Link from 'next/link';
+import EncounterNoteEditor from './encounter-note-editor';
 import { notFound, redirect } from 'next/navigation';
 import { createClient } from '../../../../lib/supabase/server';
 
@@ -107,15 +108,7 @@ export default async function ClinicalEncounterPage({ params }: { params: Params
 
         <div className="grid gap-6 xl:grid-cols-[1.45fr_1fr]">
           <div className="space-y-6">
-            <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-              <div className="flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-xl bg-slate-100"><Stethoscope size={18} /></div><div><h2 className="font-semibold">Clinical assessment</h2><p className="text-sm text-slate-500">The structured clinical note for this encounter.</p></div></div>
-              <div className="mt-6 space-y-5">
-                <div><p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Chief complaint</p><div className="mt-2 rounded-xl bg-slate-50 p-4 text-sm leading-6">{encounter.chief_complaint ?? 'Not documented yet.'}</div></div>
-                <div><p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Clinical summary</p><div className="mt-2 rounded-xl bg-slate-50 p-4 text-sm leading-6">{encounter.clinical_summary ?? 'Not documented yet.'}</div></div>
-                <div><p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Assessment</p><div className="mt-2 rounded-xl bg-slate-50 p-4 text-sm leading-6">{encounter.assessment ?? 'Not documented yet.'}</div></div>
-                <div><p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Plan</p><div className="mt-2 rounded-xl bg-slate-50 p-4 text-sm leading-6">{encounter.plan ?? 'Not documented yet.'}</div></div>
-              </div>
-            </section>
+            <EncounterNoteEditor encounterId={encounter.encounter_id} status={encounter.status} initial={{ chief_complaint: encounter.chief_complaint, clinical_summary: encounter.clinical_summary, assessment: encounter.assessment, plan: encounter.plan }} />
 
             <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
               <div className="flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-xl bg-slate-100"><ClipboardCheck size={18} /></div><div><h2 className="font-semibold">Diagnoses</h2><p className="text-sm text-slate-500">Diagnoses recorded during this encounter.</p></div></div>
