@@ -22,9 +22,9 @@ const ACTIONS = {
 } as const;
 type AppointmentStatus = keyof typeof ACTIONS;
 type Action = (typeof ACTIONS)[AppointmentStatus][number];
-type Props = { appointmentId: number; currentStatus: string; allowReschedule?: boolean };
+type Props = { appointmentId: number; currentStatus: string; allowReschedule?: boolean; isDoctor?: boolean };
 
-export default function AppointmentActions({ appointmentId, currentStatus, allowReschedule = true }: Props) {
+export default function AppointmentActions({ appointmentId, currentStatus, allowReschedule = true, isDoctor = false }: Props) {
   const router = useRouter();
   const [loadingStatus, setLoadingStatus] = useState<string | null>(null);
   const [error, setError] = useState('');
@@ -36,6 +36,14 @@ export default function AppointmentActions({ appointmentId, currentStatus, allow
     if (!window.confirm(`Are you sure you want to ${action.label.toLowerCase()}?\\n\\nAppointment #${appointmentId}\\nCurrent status: ${currentStatus}\\nNew status: ${action.status}`)) return;
     setError(''); setLoadingStatus(action.status);
     try {
+      if (action.status === 'In Progress' && isDoctor) {
+        const response = await fetch(`/api/appointments/${appointmentId}/start`, { method: 'POST' });
+        const result = await response.json().catch(() => null);
+        if (!response.ok) throw new Error(result?.error ?? 'Unable to start the clinical encounter.');
+        if (!Number.isSafeInteger(result?.encounter_id)) throw new Error('Encounter started, but its record could not be confirmed. Refresh and check the appointment before retrying.');
+        router.push(`/doctor-dashboard/encounters/${result.encounter_id}`);
+        return;
+      }
       const response = await fetch(`/api/appointments/${appointmentId}/status`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: action.status }) });
       const result = await response.json().catch(() => null);
       if (!response.ok) throw new Error(result?.error ?? 'Unable to update appointment status.');
