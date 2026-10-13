@@ -6,7 +6,6 @@ import {
   FileText,
   HeartPulse,
   Pill,
-  Stethoscope,
   UserRound,
 } from 'lucide-react';
 import Link from 'next/link';
