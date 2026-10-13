@@ -40,8 +40,9 @@ export default function AppointmentActions({ appointmentId, currentStatus, allow
         const response = await fetch(`/api/appointments/${appointmentId}/start`, { method: 'POST' });
         const result = await response.json().catch(() => null);
         if (!response.ok) throw new Error(result?.error ?? 'Unable to start the clinical encounter.');
-        if (!Number.isSafeInteger(result?.encounter_id)) throw new Error('Encounter started, but its record could not be confirmed. Refresh and check the appointment before retrying.');
-        router.push(`/doctor-dashboard/encounters/${result.encounter_id}`);
+        const encounterId = Number(result?.encounter_id);
+        if (!Number.isSafeInteger(encounterId) || encounterId < 1) throw new Error('Encounter started, but its record could not be confirmed. Refresh and check the appointment before retrying.');
+        router.push(`/doctor-dashboard/encounters/${encounterId}`);
         return;
       }
       const response = await fetch(`/api/appointments/${appointmentId}/status`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: action.status }) });
