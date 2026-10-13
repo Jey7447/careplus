@@ -2,6 +2,7 @@
 
 import { CheckCircle2, Save, TriangleAlert } from 'lucide-react';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 type Note = {
   chief_complaint: string | null;
@@ -12,6 +13,7 @@ type Note = {
 type Props = { encounterId: number; status: string; initial: Note };
 
 export default function EncounterNoteEditor({ encounterId, status, initial }: Props) {
+  const router = useRouter();
   const [values, setValues] = useState({
     chief_complaint: initial.chief_complaint ?? '',
     clinical_summary: initial.clinical_summary ?? '',
@@ -28,7 +30,7 @@ export default function EncounterNoteEditor({ encounterId, status, initial }: Pr
     setSaved(false);
   }
 
-  async function saveNote() {
+  async function saveNote(): Promise<boolean> {
     setSaving(true);
     setError('');
     setSaved(false);
@@ -49,8 +51,29 @@ export default function EncounterNoteEditor({ encounterId, status, initial }: Pr
         });
       }
       setSaved(true);
+      return true;
     } catch (saveError) {
       setError(saveError instanceof Error ? saveError.message : 'Could not save clinical note.');
+      return false;
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function completeEncounter() {
+    if (!window.confirm('Complete this encounter and mark its linked appointment completed? This will not sign the clinical note.')) return;
+    const didSave = await saveNote();
+    if (!didSave) return;
+    setSaving(true);
+    setError('');
+    try {
+      const response = await fetch(`/api/encounters/${encounterId}/complete`, { method: 'POST' });
+      const result = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(result?.error ?? 'Could not complete encounter.');
+      router.push('/appointments');
+      router.refresh();
+    } catch (completeError) {
+      setError(completeError instanceof Error ? completeError.message : 'Could not complete encounter.');
     } finally {
       setSaving(false);
     }
@@ -89,7 +112,7 @@ export default function EncounterNoteEditor({ encounterId, status, initial }: Pr
       </div>
       {error && <p role="alert" className="mt-4 flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700"><TriangleAlert size={18} className="shrink-0" />{error}</p>}
       {saved && <p role="status" className="mt-4 flex items-center gap-2 text-sm font-medium text-emerald-700"><CheckCircle2 size={18} />Clinical note saved. Encounter remains unsigned.</p>}
-      {!readOnly && <button type="button" onClick={saveNote} disabled={saving} className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"><Save size={16} />{saving ? 'Saving…' : 'Save clinical note'}</button>}
+      {!readOnly && <button type="button" onClick={saveNote} disabled={saving} className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"><Save size={16} />{saving ? 'Saving…' : 'Save clinical note'}</button>}{!readOnly && <button type="button" onClick={completeEncounter} disabled={saving} className="mt-5 ml-3 inline-flex min-h-11 items-center gap-2 rounded-xl border border-emerald-700 bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50">{saving ? 'Processing…' : 'Save and complete encounter'}</button>}
     </section>
   );
 }
