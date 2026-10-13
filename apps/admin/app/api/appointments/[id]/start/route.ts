@@ -30,13 +30,15 @@ export async function POST(_request: Request, { params }: RouteContext) {
       return NextResponse.json({ error: message }, { status });
     }
 
-    const encounter = Array.isArray(data) ? data[0] : data;
+    const rawResult: any = Array.isArray(data) ? data[0] : data;
+    const encounter = rawResult?.result ?? rawResult?.data ?? rawResult?.encounter ?? rawResult;
     // PostgreSQL bigint values can be serialized by PostgREST as strings.
     // Normalize IDs at the API boundary before returning JSON to the client.
-    const encounterId = Number(encounter?.encounter_id);
-    const linkedAppointmentId = Number(encounter?.appointment_id);
+    const encounterId = Number(encounter?.encounter_id ?? encounter?.encounterId ?? encounter?.id);
+    const linkedAppointmentId = Number(encounter?.appointment_id ?? encounter?.appointmentId ?? appointmentId);
     if (!encounter || !Number.isSafeInteger(encounterId) || encounterId < 1 || !Number.isSafeInteger(linkedAppointmentId) || linkedAppointmentId !== appointmentId) {
-      return NextResponse.json({ error: 'The encounter could not be confirmed after starting.' }, { status: 500 });
+      console.error('Start encounter returned an unexpected result shape:', { resultType: typeof rawResult, resultKeys: rawResult && typeof rawResult === 'object' ? Object.keys(rawResult) : [], encounterKeys: encounter && typeof encounter === 'object' ? Object.keys(encounter) : [], appointmentId });
+      return NextResponse.json({ error: 'The start operation returned an unexpected encounter response. No further retry is needed; check the appointment before trying again.' }, { status: 500 });
     }
 
     return NextResponse.json({
