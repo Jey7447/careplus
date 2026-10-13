@@ -33,8 +33,24 @@ export async function PATCH(request: Request, { params }: RouteContext) {
       const { data: currentAppointment, error: currentError } = await supabase.from('appointments').select('appointment_id, appointment_status').eq('appointment_id', appointmentId).eq('doctor_id', staffRecord.doctor_id).maybeSingle();
       if (currentError) return NextResponse.json({ error: 'Unable to verify the assigned appointment.' }, { status: 500 });
       if (!currentAppointment) return NextResponse.json({ error: 'Appointment not found or not assigned to you.' }, { status: 404 });
-      const allowed = (currentAppointment.appointment_status === 'Checked In' && requestedStatus === 'In Progress') || (currentAppointment.appointment_status === 'In Progress' && requestedStatus === 'Completed');
-      if (!allowed) return NextResponse.json({ error: 'Doctors may only start checked-in appointments or complete appointments already in progress.' }, { status: 403 });
+      if (currentAppointment.appointment_status === 'Checked In' && requestedStatus === 'In Progress') {
+        return NextResponse.json({ error: 'Use Start appointment to create or reopen the linked clinical encounter.' }, { status: 409 });
+      }
+
+      if (currentAppointment.appointment_status === 'In Progress' && requestedStatus === 'Completed') {
+        const { data: encounter, error: encounterError } = await supabase
+          .from('encounters')
+          .select('encounter_id, status')
+          .eq('appointment_id', appointmentId)
+          .eq('doctor_id', staffRecord.doctor_id)
+          .maybeSingle();
+        if (encounterError) return NextResponse.json({ error: 'Unable to verify the clinical encounter.' }, { status: 500 });
+        if (!encounter || encounter.status !== 'Completed') {
+          return NextResponse.json({ error: 'Complete the clinical encounter before completing the appointment.' }, { status: 409 });
+        }
+      } else if (!(currentAppointment.appointment_status === 'In Progress' && requestedStatus === 'Completed')) {
+        return NextResponse.json({ error: 'Doctors may only complete appointments with a completed clinical encounter.' }, { status: 403 });
+      }
     }
 
     const updateQuery = supabase.from('appointments').update({ appointment_status: requestedStatus as AppointmentStatus }).eq('appointment_id', appointmentId);
