@@ -1,0 +1,43 @@
+name: CarePlus Admin Build
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/admin/**"
+      - "package.json"
+      - "packages/**"
+      - ".github/workflows/careplus-admin-build.yml"
+  pull_request:
+    paths:
+      - "apps/admin/**"
+      - "package.json"
+      - "packages/**"
+      - ".github/workflows/careplus-admin-build.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: careplus-admin-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Install and build admin app
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install workspace dependencies
+        run: npm install
+
+      - name: Build CarePlus admin
+        run: npm run build:admin
