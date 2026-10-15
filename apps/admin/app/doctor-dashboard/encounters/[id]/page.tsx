@@ -74,7 +74,7 @@ export default async function ClinicalEncounterPage({ params }: { params: Params
   const activeAllergies = (allergies ?? []).filter((a) => a.status === 'Active');
 
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-900">
+    <main className="cp-page">
       <header className="bg-slate-950 text-white">
         <div className="mx-auto max-w-7xl px-6 py-6 lg:px-8">
           <Link href="/doctor-dashboard" className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-white"><ArrowLeft size={16} /> Back to doctor dashboard</Link>
@@ -97,10 +97,10 @@ export default async function ClinicalEncounterPage({ params }: { params: Params
 
       <div className="mx-auto max-w-7xl space-y-6 p-6 lg:p-8">
         {activeAllergies.length > 0 && (
-          <section className="rounded-2xl border border-red-200 bg-red-50 p-5">
+          <section className="rounded-2xl border p-5" style={{ borderColor: "var(--cp-danger)", background: "var(--cp-danger-soft)" }}>
             <div className="flex items-start gap-3">
               <AlertTriangle className="mt-0.5 shrink-0 text-red-600" size={20} />
-              <div><p className="font-semibold text-red-900">Active allergies</p><div className="mt-2 flex flex-wrap gap-2">{activeAllergies.map((a) => <span key={a.allergy_id} className="rounded-full border border-red-200 bg-white px-3 py-1 text-xs text-red-800">{a.allergen}{a.reaction ? ` · ${a.reaction}` : ''}</span>)}</div></div>
+              <div><p className="font-semibold" style={{ color: "var(--cp-danger)" }}>Active allergies</p><div className="mt-2 flex flex-wrap gap-2">{activeAllergies.map((a) => <span key={a.allergy_id} className="rounded-full border px-3 py-1 text-xs" style={{ borderColor: "var(--cp-danger)", background: "var(--cp-surface)", color: "var(--cp-danger)" }}>{a.allergen}{a.reaction ? ` · ${a.reaction}` : ''}</span>)}</div></div>
             </div>
           </section>
         )}
@@ -109,24 +109,24 @@ export default async function ClinicalEncounterPage({ params }: { params: Params
           <div className="space-y-6">
             <EncounterNoteEditor encounterId={encounter.encounter_id} status={encounter.status} initial={{ chief_complaint: encounter.chief_complaint, clinical_summary: encounter.clinical_summary, assessment: encounter.assessment, plan: encounter.plan }} />
 
-            <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <section className="cp-panel p-6">
               <div className="flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-xl bg-slate-100"><ClipboardCheck size={18} /></div><div><h2 className="font-semibold">Diagnoses</h2><p className="text-sm text-slate-500">Diagnoses recorded during this encounter.</p></div></div>
               <div className="mt-5 space-y-3">{(diagnoses ?? []).map((d) => <div key={d.encounter_diagnosis_id} className="rounded-xl border border-slate-200 p-4"><div className="flex items-start justify-between gap-3"><div><p className="font-medium">{d.diagnosis_text}</p><p className="mt-1 text-xs text-slate-500">{d.is_primary ? 'Primary diagnosis' : 'Secondary diagnosis'} · {d.severity ?? 'Severity not recorded'}</p></div><span className="text-xs text-slate-400">{formatDateTime(d.diagnosed_at)}</span></div>{d.notes && <p className="mt-3 text-sm text-slate-500">{d.notes}</p>}</div>)}{(diagnoses ?? []).length === 0 && <p className="rounded-xl border border-dashed border-slate-300 p-6 text-center text-sm text-slate-500">No diagnoses recorded for this encounter.</p>}</div>
             </section>
           </div>
 
           <div className="space-y-6">
-            <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <section className="cp-panel p-6">
               <div className="flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-xl bg-slate-100"><Activity size={18} /></div><div><h2 className="font-semibold">Vitals</h2><p className="text-sm text-slate-500">Most recent measurements.</p></div></div>
               <div className="mt-5 space-y-3">{(vitals ?? []).slice(0,3).map((v) => <div key={v.vital_id} className="rounded-xl bg-slate-50 p-4"><div className="grid grid-cols-2 gap-4 text-sm"><div><p className="text-xs text-slate-500">BP</p><p className="font-semibold">{v.systolic_bp ?? '—'}/{v.diastolic_bp ?? '—'} mmHg</p></div><div><p className="text-xs text-slate-500">Pulse</p><p className="font-semibold">{v.pulse_rate ?? '—'} bpm</p></div><div><p className="text-xs text-slate-500">Temp</p><p className="font-semibold">{v.temperature_c ?? '—'} °C</p></div><div><p className="text-xs text-slate-500">SpO₂</p><p className="font-semibold">{v.spo2_percent ?? '—'}%</p></div><div><p className="text-xs text-slate-500">Weight</p><p className="font-semibold">{v.weight_kg ?? '—'} kg</p></div><div><p className="text-xs text-slate-500">Pain</p><p className="font-semibold">{v.pain_score ?? '—'}/10</p></div></div><p className="mt-3 text-xs text-slate-400">{formatDateTime(v.recorded_at)}</p></div>)}{(vitals ?? []).length === 0 && <p className="rounded-xl border border-dashed border-slate-300 p-6 text-center text-sm text-slate-500">No vitals recorded yet.</p>}</div>
             </section>
 
-            <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <section className="cp-panel p-6">
               <div className="flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-xl bg-slate-100"><Pill size={18} /></div><div><h2 className="font-semibold">Prescription</h2><p className="text-sm text-slate-500">Medication workflow coming next.</p></div></div>
               <div className="mt-5 rounded-xl border border-dashed border-slate-300 p-6 text-center"><Pill className="mx-auto text-slate-300" size={28} /><p className="mt-3 text-sm font-medium">Prescription workspace</p><p className="mt-1 text-xs leading-5 text-slate-500">Medication, dose, route, frequency, duration and dispensing will connect here.</p></div>
             </section>
 
-            <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <section className="cp-panel p-6">
               <div className="flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-xl bg-slate-100"><FileText size={18} /></div><div><h2 className="font-semibold">Encounter timeline</h2><p className="text-sm text-slate-500">Clinical record timestamps.</p></div></div>
               <div className="mt-5 space-y-3 text-sm"><div className="flex justify-between gap-4"><span className="text-slate-500">Started</span><span className="font-medium">{formatDateTime(encounter.started_at)}</span></div><div className="flex justify-between gap-4"><span className="text-slate-500">Completed</span><span className="font-medium">{formatDateTime(encounter.completed_at)}</span></div><div className="flex justify-between gap-4"><span className="text-slate-500">Signed</span><span className="font-medium">{formatDateTime(encounter.signed_at)}</span></div></div>
             </section>
