@@ -87,7 +87,7 @@ export default function EncounterNoteEditor({ encounterId, status, initial }: Pr
   ];
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <section className="cp-panel cp-note-editor p-6">
       <div className="flex items-center gap-3">
         <div className="grid h-10 w-10 place-items-center rounded-xl bg-slate-100"><Save size={18} /></div>
         <div><h2 className="font-semibold">Clinical assessment</h2><p className="text-sm text-slate-500">Save the clinical note as a draft. Saving does not sign or complete the encounter.</p></div>
@@ -96,15 +96,15 @@ export default function EncounterNoteEditor({ encounterId, status, initial }: Pr
       <div className="mt-5 space-y-5">
         {fields.map((field) => (
           <label key={field.key} className="block">
-            <span className="text-sm font-semibold text-slate-800">{field.label}</span>
-            <span className="mt-1 block text-xs text-slate-500">{field.hint}</span>
+            <span className="cp-note-label">{field.label}</span>
+            <span className="cp-note-help mt-1 block">{field.hint}</span>
             <textarea
               value={values[field.key]}
               onChange={(event) => update(field.key, event.target.value)}
               disabled={readOnly || saving}
               maxLength={10000}
               rows={field.key === 'chief_complaint' ? 2 : 4}
-              className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm leading-6 outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-100 disabled:bg-slate-50"
+              className="cp-note-field mt-2 w-full rounded-xl border px-4 py-3 text-sm leading-6 outline-none disabled:opacity-60"
               placeholder={`Document ${field.label.toLowerCase()}…`}
             />
           </label>
