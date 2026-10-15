@@ -446,3 +446,87 @@ html.dark {
 @media (prefers-reduced-motion: reduce) {
   .cp-note-field { transition: none; }
 }
+
+
+/* Doctor dashboard: clinical hierarchy rather than a stack of interchangeable cards. */
+.cp-doctor-dashboard .cp-doctor-hero {
+  border-bottom: 1px solid color-mix(in srgb, var(--cp-line) 25%, transparent);
+}
+.cp-doctor-dashboard .cp-doctor-hero h1 {
+  font-size: clamp(1.8rem, 2.5vw, 2.35rem);
+  letter-spacing: -0.045em;
+}
+.cp-doctor-dashboard .cp-doctor-metrics > .cp-panel {
+  border-radius: 14px;
+  box-shadow: none;
+  padding: 1.15rem 1.25rem;
+}
+.cp-doctor-dashboard .cp-doctor-metrics > .cp-panel:nth-child(2) {
+  border-left: 3px solid var(--cp-warning);
+}
+.cp-doctor-dashboard .cp-doctor-metrics > .cp-panel:nth-child(4) {
+  border-left: 3px solid var(--cp-accent);
+}
+.cp-doctor-dashboard .cp-doctor-metrics > .cp-panel > div > p:first-child {
+  letter-spacing: .075em;
+  font-size: .68rem;
+  font-weight: 700;
+}
+.cp-doctor-dashboard .cp-doctor-metrics > .cp-panel > p:nth-child(2) {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.045em;
+  line-height: 1;
+}
+.cp-doctor-dashboard .cp-active-work {
+  position: relative;
+  overflow: hidden;
+  border-color: color-mix(in srgb, var(--cp-accent) 35%, var(--cp-line));
+  border-radius: 16px;
+  background: var(--cp-accent-soft);
+  box-shadow: none;
+}
+.cp-doctor-dashboard .cp-active-work::before {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: var(--cp-accent);
+  content: "";
+}
+.cp-doctor-dashboard .cp-active-work > * { position: relative; }
+.cp-doctor-dashboard .cp-patient-queue,
+.cp-doctor-dashboard .cp-clinical-focus,
+.cp-doctor-dashboard .cp-workflow-panel {
+  border-radius: 16px;
+  box-shadow: none;
+}
+.cp-doctor-dashboard .cp-patient-queue { border-top: 3px solid var(--cp-accent); }
+.cp-doctor-dashboard .cp-patient-queue a:focus-visible,
+.cp-doctor-dashboard .cp-active-work a:focus-visible {
+  outline: 3px solid var(--cp-focus);
+  outline-offset: 3px;
+}
+.cp-doctor-dashboard .cp-patient-queue > div:last-child > a {
+  border-color: var(--cp-line);
+  background: var(--cp-surface);
+}
+.cp-doctor-dashboard .cp-patient-queue > div:last-child > a:hover {
+  border-color: var(--cp-accent);
+  box-shadow: 0 5px 16px rgb(24 43 42 / .06);
+}
+.cp-doctor-dashboard .cp-workflow-panel > div:last-child > div {
+  background: var(--cp-surface-muted);
+  border-color: var(--cp-line);
+}
+.cp-doctor-dashboard .cp-clinical-focus > div:last-child > div {
+  border-left: 2px solid var(--cp-line);
+  border-radius: 0 10px 10px 0;
+}
+html.dark .cp-doctor-dashboard .cp-active-work {
+  background: color-mix(in srgb, var(--cp-accent) 17%, var(--cp-surface));
+  border-color: color-mix(in srgb, var(--cp-accent) 42%, var(--cp-line));
+}
+html.dark .cp-doctor-dashboard .cp-active-work::before { background: #5eead4; }
+@media (max-width: 640px) {
+  .cp-doctor-dashboard .cp-doctor-metrics > .cp-panel { padding: 1rem; }
+  .cp-doctor-dashboard .cp-active-work { padding: 1.15rem; }
+}
