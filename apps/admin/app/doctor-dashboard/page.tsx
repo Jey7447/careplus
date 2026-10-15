@@ -146,7 +146,7 @@ export default async function DoctorDashboardPage() {
     .filter((item) => item.appointment);
 
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-900">
+    <main className="cp-page">
       <div className="flex min-h-screen">
         <aside className="hidden w-64 shrink-0 border-r border-slate-200 bg-white lg:flex lg:flex-col">
           <div className="flex items-center gap-3 p-6">
@@ -179,10 +179,10 @@ export default async function DoctorDashboardPage() {
 
           <div className="mx-auto max-w-7xl space-y-6 p-6 lg:p-8">
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><div className="flex justify-between"><p className="text-xs uppercase tracking-wide text-slate-500">Today's patients</p><CalendarDays size={18} className="text-slate-400" /></div><p className="mt-3 text-3xl font-semibold">{todayQueue.length}</p><p className="mt-1 text-sm text-slate-500">Appointments on your list</p></div>
-              <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><div className="flex justify-between"><p className="text-xs uppercase tracking-wide text-slate-500">Waiting</p><Clock3 size={18} className="text-slate-400" /></div><p className="mt-3 text-3xl font-semibold">{waiting.length}</p><p className="mt-1 text-sm text-slate-500">Checked in or in progress</p></div>
-              <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><div className="flex justify-between"><p className="text-xs uppercase tracking-wide text-slate-500">Upcoming</p><Activity size={18} className="text-slate-400" /></div><p className="mt-3 text-3xl font-semibold">{upcoming.length}</p><p className="mt-1 text-sm text-slate-500">Scheduled or confirmed</p></div>
-              <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><div className="flex justify-between"><p className="text-xs uppercase tracking-wide text-slate-500">Active encounters</p><FileText size={18} className="text-slate-400" /></div><p className="mt-3 text-3xl font-semibold">{(encounters ?? []).filter((e) => ['Draft', 'In Progress'].includes(e.status)).length}</p><p className="mt-1 text-sm text-slate-500">Clinical work in progress</p></div>
+              <div className="cp-panel p-5"><div className="flex justify-between"><p className="text-xs uppercase tracking-wide text-slate-500">Today's patients</p><CalendarDays size={18} className="text-slate-400" /></div><p className="mt-3 text-3xl font-semibold">{todayQueue.length}</p><p className="mt-1 text-sm text-slate-500">Appointments on your list</p></div>
+              <div className="cp-panel p-5"><div className="flex justify-between"><p className="text-xs uppercase tracking-wide text-slate-500">Waiting</p><Clock3 size={18} className="text-slate-400" /></div><p className="mt-3 text-3xl font-semibold">{waiting.length}</p><p className="mt-1 text-sm text-slate-500">Checked in or in progress</p></div>
+              <div className="cp-panel p-5"><div className="flex justify-between"><p className="text-xs uppercase tracking-wide text-slate-500">Upcoming</p><Activity size={18} className="text-slate-400" /></div><p className="mt-3 text-3xl font-semibold">{upcoming.length}</p><p className="mt-1 text-sm text-slate-500">Scheduled or confirmed</p></div>
+              <div className="cp-panel p-5"><div className="flex justify-between"><p className="text-xs uppercase tracking-wide text-slate-500">Active encounters</p><FileText size={18} className="text-slate-400" /></div><p className="mt-3 text-3xl font-semibold">{(encounters ?? []).filter((e) => ['Draft', 'In Progress'].includes(e.status)).length}</p><p className="mt-1 text-sm text-slate-500">Clinical work in progress</p></div>
             </div>
 
             {resumableEncounters.length > 0 && (
