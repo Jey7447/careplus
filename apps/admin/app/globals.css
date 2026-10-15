@@ -530,3 +530,64 @@ html.dark .cp-doctor-dashboard .cp-active-work::before { background: #5eead4; }
   .cp-doctor-dashboard .cp-doctor-metrics > .cp-panel { padding: 1rem; }
   .cp-doctor-dashboard .cp-active-work { padding: 1.15rem; }
 }
+
+
+/* Clinical encounter: make the note the primary work surface and the clinical context scannable. */
+.cp-clinical-encounter .cp-encounter-hero {
+  border-bottom: 1px solid color-mix(in srgb, var(--cp-line) 25%, transparent);
+}
+.cp-clinical-encounter .cp-encounter-hero h1 {
+  font-size: clamp(1.65rem, 2.4vw, 2.1rem);
+  letter-spacing: -.04em;
+}
+.cp-clinical-encounter .cp-encounter-layout > div:first-child > .cp-panel:first-child {
+  border-top: 3px solid var(--cp-accent);
+}
+.cp-clinical-encounter .cp-encounter-layout .cp-panel {
+  border-radius: 16px;
+  box-shadow: none;
+}
+.cp-clinical-encounter .cp-encounter-layout .cp-panel h2 {
+  letter-spacing: -.025em;
+}
+.cp-clinical-encounter .cp-vitals-panel {
+  border-top: 3px solid #7b9bba;
+}
+.cp-clinical-encounter .cp-diagnoses-panel {
+  border-top: 3px solid var(--cp-accent);
+}
+.cp-clinical-encounter .cp-prescription-panel,
+.cp-clinical-encounter .cp-timeline-panel {
+  background: color-mix(in srgb, var(--cp-surface) 88%, var(--cp-surface-muted));
+}
+.cp-clinical-encounter .cp-prescription-panel > div:last-child {
+  border-color: var(--cp-line);
+  background: var(--cp-surface-muted);
+}
+.cp-clinical-encounter .cp-encounter-layout .rounded-xl.border-dashed {
+  border-color: color-mix(in srgb, var(--cp-ink-muted) 35%, var(--cp-line));
+}
+.cp-clinical-encounter .cp-encounter-hero a:focus-visible,
+.cp-clinical-encounter .cp-encounter-layout button:focus-visible,
+.cp-clinical-encounter .cp-encounter-layout a:focus-visible {
+  outline: 3px solid var(--cp-focus);
+  outline-offset: 3px;
+}
+@media (min-width: 1280px) {
+  .cp-clinical-encounter .cp-encounter-layout {
+    align-items: start;
+  }
+  .cp-clinical-encounter .cp-encounter-layout > div:last-child {
+    position: sticky;
+    top: 1.25rem;
+    align-self: start;
+  }
+}
+@media (max-width: 640px) {
+  .cp-clinical-encounter .cp-encounter-layout .cp-panel { padding: 1.1rem; }
+  .cp-clinical-encounter .cp-encounter-hero > div { padding: 1.25rem; }
+}
+html.dark .cp-clinical-encounter .cp-prescription-panel,
+html.dark .cp-clinical-encounter .cp-timeline-panel {
+  background: color-mix(in srgb, var(--cp-surface) 94%, var(--cp-surface-muted));
+}
