@@ -331,3 +331,263 @@ html.dark .active-work-status {
 }
 html.dark .active-work-link { color: #5eead4; }
 html.dark .active-work-card:hover { border-color: #5eead4; }
+
+
+/* CarePlus design foundation
+   Semantic tokens are the source of truth for new/refactored components.
+   Existing Tailwind utilities remain until each page is migrated deliberately. */
+:root {
+  color-scheme: light;
+  --cp-canvas: #f4f6f4;
+  --cp-surface: #ffffff;
+  --cp-surface-muted: #edf2ef;
+  --cp-ink: #182b2a;
+  --cp-ink-soft: #425653;
+  --cp-ink-muted: #667874;
+  --cp-line: #d9e3de;
+  --cp-accent: #176b60;
+  --cp-accent-hover: #10564d;
+  --cp-accent-soft: #e1f2ed;
+  --cp-focus: #0f766e;
+  --cp-danger: #a73535;
+  --cp-danger-soft: #fceaea;
+  --cp-warning: #875a13;
+  --cp-warning-soft: #fbf0d6;
+  --cp-success: #17664e;
+  --cp-success-soft: #e0f3e9;
+  --cp-radius-control: 8px;
+  --cp-radius-panel: 14px;
+  --cp-radius-feature: 18px;
+  --cp-shadow-panel: 0 1px 2px rgb(24 43 42 / 0.04);
+  --cp-content-width: 1440px;
+}
+html.dark {
+  color-scheme: dark;
+  --cp-canvas: #101918;
+  --cp-surface: #172220;
+  --cp-surface-muted: #202e2b;
+  --cp-ink: #eef5f1;
+  --cp-ink-soft: #c0d0c9;
+  --cp-ink-muted: #91a59c;
+  --cp-line: #30413b;
+  --cp-accent: #68c5b1;
+  --cp-accent-hover: #8bd8c7;
+  --cp-accent-soft: #173b34;
+  --cp-focus: #68c5b1;
+  --cp-danger: #ffaaaa;
+  --cp-danger-soft: #462626;
+  --cp-warning: #f2cb78;
+  --cp-warning-soft: #41341e;
+  --cp-success: #8bd8b2;
+  --cp-success-soft: #183b2e;
+  --cp-shadow-panel: 0 1px 2px rgb(0 0 0 / 0.18);
+}
+
+/* Semantic building blocks for the gradual page-by-page migration. */
+.cp-page {
+  min-height: 100vh;
+  background: var(--cp-canvas);
+  color: var(--cp-ink);
+}
+.cp-panel {
+  border: 1px solid var(--cp-line);
+  border-radius: var(--cp-radius-panel);
+  background: var(--cp-surface);
+  box-shadow: var(--cp-shadow-panel);
+}
+.cp-eyebrow {
+  color: var(--cp-ink-muted);
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.12em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+.cp-muted { color: var(--cp-ink-muted); }
+.cp-secondary { color: var(--cp-ink-soft); }
+.cp-focusable:focus-visible {
+  outline: 3px solid var(--cp-focus);
+  outline-offset: 3px;
+}
+
+
+/* Clinical workspace refinement: prioritize the note, keep supporting panels quiet. */
+.cp-note-editor {
+  border-radius: 18px;
+  box-shadow: 0 2px 8px rgb(24 43 42 / 0.035);
+}
+.cp-note-label {
+  display: block;
+  color: var(--cp-ink);
+  font-size: 0.9rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+.cp-note-help {
+  color: var(--cp-ink-muted);
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+.cp-note-field {
+  min-height: 3.25rem;
+  border-color: var(--cp-line);
+  background: var(--cp-surface);
+  color: var(--cp-ink);
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+.cp-note-field::placeholder { color: var(--cp-ink-muted); opacity: .9; }
+.cp-note-field:hover:not(:disabled) { border-color: var(--cp-ink-muted); }
+.cp-note-field:focus-visible {
+  border-color: var(--cp-focus);
+  outline: 3px solid color-mix(in srgb, var(--cp-focus) 22%, transparent);
+  outline-offset: 1px;
+}
+.cp-note-field:disabled { background: var(--cp-surface-muted); cursor: not-allowed; }
+@media (prefers-reduced-motion: reduce) {
+  .cp-note-field { transition: none; }
+}
+
+
+/* Doctor dashboard: clinical hierarchy rather than a stack of interchangeable cards. */
+.cp-doctor-dashboard .cp-doctor-hero {
+  border-bottom: 1px solid color-mix(in srgb, var(--cp-line) 25%, transparent);
+}
+.cp-doctor-dashboard .cp-doctor-hero h1 {
+  font-size: clamp(1.8rem, 2.5vw, 2.35rem);
+  letter-spacing: -0.045em;
+}
+.cp-doctor-dashboard .cp-doctor-metrics > .cp-panel {
+  border-radius: 14px;
+  box-shadow: none;
+  padding: 1.15rem 1.25rem;
+}
+.cp-doctor-dashboard .cp-doctor-metrics > .cp-panel:nth-child(2) {
+  border-left: 3px solid var(--cp-warning);
+}
+.cp-doctor-dashboard .cp-doctor-metrics > .cp-panel:nth-child(4) {
+  border-left: 3px solid var(--cp-accent);
+}
+.cp-doctor-dashboard .cp-doctor-metrics > .cp-panel > div > p:first-child {
+  letter-spacing: .075em;
+  font-size: .68rem;
+  font-weight: 700;
+}
+.cp-doctor-dashboard .cp-doctor-metrics > .cp-panel > p:nth-child(2) {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.045em;
+  line-height: 1;
+}
+.cp-doctor-dashboard .cp-active-work {
+  position: relative;
+  overflow: hidden;
+  border-color: var(--cp-line);
+  border-radius: 16px;
+  background: var(--cp-surface);
+  box-shadow: none;
+}
+.cp-doctor-dashboard .cp-active-work::before {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: var(--cp-accent);
+  content: "";
+}
+.cp-doctor-dashboard .cp-active-work > * { position: relative; }
+.cp-doctor-dashboard .cp-patient-queue,
+.cp-doctor-dashboard .cp-clinical-focus,
+.cp-doctor-dashboard .cp-workflow-panel {
+  border-radius: 16px;
+  box-shadow: none;
+}
+.cp-doctor-dashboard .cp-patient-queue { border-top: 3px solid var(--cp-accent); }
+.cp-doctor-dashboard .cp-patient-queue a:focus-visible,
+.cp-doctor-dashboard .cp-active-work a:focus-visible {
+  outline: 3px solid var(--cp-focus);
+  outline-offset: 3px;
+}
+.cp-doctor-dashboard .cp-patient-queue > div:last-child > a {
+  border-color: var(--cp-line);
+  background: var(--cp-surface);
+}
+.cp-doctor-dashboard .cp-patient-queue > div:last-child > a:hover {
+  border-color: var(--cp-accent);
+  box-shadow: 0 5px 16px rgb(24 43 42 / .06);
+}
+.cp-doctor-dashboard .cp-workflow-panel > div:last-child > div {
+  background: var(--cp-surface-muted);
+  border-color: var(--cp-line);
+}
+.cp-doctor-dashboard .cp-clinical-focus > div:last-child > div {
+  border-left: 2px solid var(--cp-line);
+  border-radius: 0 10px 10px 0;
+}
+html.dark .cp-doctor-dashboard .cp-active-work {
+  background: var(--cp-surface);
+  border-color: color-mix(in srgb, var(--cp-accent) 30%, var(--cp-line));
+}
+html.dark .cp-doctor-dashboard .cp-active-work::before { background: #5eead4; }
+@media (max-width: 640px) {
+  .cp-doctor-dashboard .cp-doctor-metrics > .cp-panel { padding: 1rem; }
+  .cp-doctor-dashboard .cp-active-work { padding: 1.15rem; }
+}
+
+
+/* Clinical encounter: make the note the primary work surface and the clinical context scannable. */
+.cp-clinical-encounter .cp-encounter-hero {
+  border-bottom: 1px solid color-mix(in srgb, var(--cp-line) 25%, transparent);
+}
+.cp-clinical-encounter .cp-encounter-hero h1 {
+  font-size: clamp(1.65rem, 2.4vw, 2.1rem);
+  letter-spacing: -.04em;
+}
+.cp-clinical-encounter .cp-encounter-layout > div:first-child > .cp-panel:first-child {
+  border-top: 3px solid var(--cp-accent);
+}
+.cp-clinical-encounter .cp-encounter-layout .cp-panel {
+  border-radius: 16px;
+  box-shadow: none;
+}
+.cp-clinical-encounter .cp-encounter-layout .cp-panel h2 {
+  letter-spacing: -.025em;
+}
+.cp-clinical-encounter .cp-vitals-panel {
+  border-top: 3px solid #7b9bba;
+}
+.cp-clinical-encounter .cp-diagnoses-panel {
+  border-top: 3px solid var(--cp-accent);
+}
+.cp-clinical-encounter .cp-prescription-panel,
+.cp-clinical-encounter .cp-timeline-panel {
+  background: color-mix(in srgb, var(--cp-surface) 88%, var(--cp-surface-muted));
+}
+.cp-clinical-encounter .cp-prescription-panel > div:last-child {
+  border-color: var(--cp-line);
+  background: var(--cp-surface-muted);
+}
+.cp-clinical-encounter .cp-encounter-layout .rounded-xl.border-dashed {
+  border-color: color-mix(in srgb, var(--cp-ink-muted) 35%, var(--cp-line));
+}
+.cp-clinical-encounter .cp-encounter-hero a:focus-visible,
+.cp-clinical-encounter .cp-encounter-layout button:focus-visible,
+.cp-clinical-encounter .cp-encounter-layout a:focus-visible {
+  outline: 3px solid var(--cp-focus);
+  outline-offset: 3px;
+}
+@media (min-width: 1280px) {
+  .cp-clinical-encounter .cp-encounter-layout {
+    align-items: start;
+  }
+  .cp-clinical-encounter .cp-encounter-layout > div:last-child {
+    position: sticky;
+    top: 1.25rem;
+    align-self: start;
+  }
+}
+@media (max-width: 640px) {
+  .cp-clinical-encounter .cp-encounter-layout .cp-panel { padding: 1.1rem; }
+  .cp-clinical-encounter .cp-encounter-hero > div { padding: 1.25rem; }
+}
+html.dark .cp-clinical-encounter .cp-prescription-panel,
+html.dark .cp-clinical-encounter .cp-timeline-panel {
+  background: color-mix(in srgb, var(--cp-surface) 94%, var(--cp-surface-muted));
+}
