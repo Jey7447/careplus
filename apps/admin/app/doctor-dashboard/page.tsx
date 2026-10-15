@@ -146,7 +146,7 @@ export default async function DoctorDashboardPage() {
     .filter((item) => item.appointment);
 
   return (
-    <main className="cp-page">
+    <main className="cp-page cp-doctor-dashboard">
       <div className="flex min-h-screen">
         <aside className="hidden w-64 shrink-0 border-r border-slate-200 bg-white lg:flex lg:flex-col">
           <div className="flex items-center gap-3 p-6">
@@ -164,7 +164,7 @@ export default async function DoctorDashboardPage() {
         </aside>
 
         <section className="min-w-0 flex-1">
-          <header className="bg-slate-950 text-white">
+          <header className="cp-doctor-hero bg-slate-950 text-white">
             <div className="mx-auto max-w-7xl px-6 py-7 lg:px-8">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Doctor Dashboard</p>
               <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -178,7 +178,7 @@ export default async function DoctorDashboardPage() {
           </header>
 
           <div className="mx-auto max-w-7xl space-y-6 p-6 lg:p-8">
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="cp-doctor-metrics grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
               <div className="cp-panel p-5"><div className="flex justify-between"><p className="text-xs uppercase tracking-wide text-slate-500">Today's patients</p><CalendarDays size={18} className="text-slate-400" /></div><p className="mt-3 text-3xl font-semibold">{todayQueue.length}</p><p className="mt-1 text-sm text-slate-500">Appointments on your list</p></div>
               <div className="cp-panel p-5"><div className="flex justify-between"><p className="text-xs uppercase tracking-wide text-slate-500">Waiting</p><Clock3 size={18} className="text-slate-400" /></div><p className="mt-3 text-3xl font-semibold">{waiting.length}</p><p className="mt-1 text-sm text-slate-500">Checked in or in progress</p></div>
               <div className="cp-panel p-5"><div className="flex justify-between"><p className="text-xs uppercase tracking-wide text-slate-500">Upcoming</p><Activity size={18} className="text-slate-400" /></div><p className="mt-3 text-3xl font-semibold">{upcoming.length}</p><p className="mt-1 text-sm text-slate-500">Scheduled or confirmed</p></div>
@@ -186,7 +186,7 @@ export default async function DoctorDashboardPage() {
             </div>
 
             {resumableEncounters.length > 0 && (
-              <section className="active-work-panel rounded-2xl border p-5 shadow-sm sm:p-6">
+              <section className="active-work-panel cp-active-work rounded-2xl border p-5 sm:p-6">
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                   <div>
                     <p className="active-work-eyebrow text-xs font-semibold uppercase tracking-[0.18em]">Continue clinical work</p>
@@ -218,7 +218,7 @@ export default async function DoctorDashboardPage() {
             )}
 
             <div className="grid gap-6 xl:grid-cols-[1.5fr_1fr]">
-              <section className="cp-panel p-6">
+              <section className="cp-panel cp-patient-queue p-6">
                 <div className="flex items-center justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Patient queue</p><h2 className="mt-1 text-lg font-semibold">Today's consultations</h2><p className="mt-1 text-sm text-slate-500">Patients assigned to you, ordered by appointment time.</p></div><span className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600">{todayQueue.length} today</span></div>
                 <div className="mt-5 space-y-3">
                   {todayQueue.map((appointment) => {
@@ -235,7 +235,7 @@ export default async function DoctorDashboardPage() {
                 </div>
               </section>
 
-              <section className="cp-panel p-6">
+              <section className="cp-panel cp-clinical-focus p-6">
                 <div className="flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-xl bg-slate-100"><AlertTriangle size={18} /></div><div><h2 className="font-semibold">Clinical focus</h2><p className="text-sm text-slate-500">Quick reminders for today's work.</p></div></div>
                 <div className="mt-5 space-y-3">
                   <div className="rounded-xl p-4" style={{ background: "var(--cp-surface-muted)" }}><p className="text-sm font-medium">Start encounters from the patient queue</p><p className="mt-1 text-xs leading-5 text-slate-500">Each consultation should become a clinical encounter before documentation is completed.</p></div>
@@ -245,7 +245,7 @@ export default async function DoctorDashboardPage() {
               </section>
             </div>
 
-            <section className="cp-panel p-6">
+            <section className="cp-panel cp-workflow-panel p-6">
               <div className="flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-xl bg-slate-100"><Pill size={18} /></div><div><h2 className="font-semibold">Clinical workflow</h2><p className="text-sm text-slate-500">The next layer is prescriptions and medication history.</p></div></div>
               <div className="mt-5 grid gap-4 md:grid-cols-3">
                 <div className="rounded-xl border border-slate-200 p-4"><CheckCircle2 size={18} className="text-slate-400" /><p className="mt-3 text-sm font-semibold">Encounter</p><p className="mt-1 text-xs text-slate-500">Consultation becomes a structured clinical record.</p></div>
