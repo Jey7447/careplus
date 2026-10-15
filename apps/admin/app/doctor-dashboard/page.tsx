@@ -245,14 +245,7 @@ export default async function DoctorDashboardPage() {
               </section>
             </div>
 
-            <section className="cp-panel cp-workflow-panel p-6">
-              <div className="flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-xl bg-slate-100"><Pill size={18} /></div><div><h2 className="font-semibold">Clinical workflow</h2><p className="text-sm text-slate-500">The next layer is prescriptions and medication history.</p></div></div>
-              <div className="mt-5 grid gap-4 md:grid-cols-3">
-                <div className="rounded-xl border border-slate-200 p-4"><CheckCircle2 size={18} className="text-slate-400" /><p className="mt-3 text-sm font-semibold">Encounter</p><p className="mt-1 text-xs text-slate-500">Consultation becomes a structured clinical record.</p></div>
-                <div className="rounded-xl border border-dashed border-slate-300 p-4"><Pill size={18} className="text-slate-400" /><p className="mt-3 text-sm font-semibold">Prescription</p><p className="mt-1 text-xs text-slate-500">Medication, dose, route, frequency and duration will live here.</p></div>
-                <div className="rounded-xl border border-dashed border-slate-300 p-4"><FileText size={18} className="text-slate-400" /><p className="mt-3 text-sm font-semibold">Follow-up</p><p className="mt-1 text-xs text-slate-500">Future appointments and clinical instructions complete the loop.</p></div>
-              </div>
-            </section>
+
           </div>
         </section>
       </div>
