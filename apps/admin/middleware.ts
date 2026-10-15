@@ -23,6 +23,7 @@ export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const isLoginPage = pathname === '/login';
   const isUnauthorizedPage = pathname === '/unauthorized';
+  const isDoctorStartApiRoute = request.method === 'POST' && /^\/api\/appointments\/\d+\/start$/.test(pathname);
 
   if (!claims) {
     if (!isLoginPage) {
@@ -36,6 +37,7 @@ export async function middleware(request: NextRequest) {
   const isCarePlusDoctor = !staffError && staffRecord?.active === true && staffRecord?.role === 'doctor' && Boolean(staffRecord?.doctor_id);
 
   const isDoctorRoute =
+    isDoctorStartApiRoute ||
     pathname === '/doctor-dashboard' || pathname.startsWith('/doctor-dashboard/') ||
     pathname === '/patients' || pathname.startsWith('/patients/') ||
     pathname === '/appointments' || pathname.startsWith('/appointments/') ||
@@ -63,6 +65,9 @@ export async function middleware(request: NextRequest) {
       const url = request.nextUrl.clone(); url.pathname = '/appointments'; return NextResponse.redirect(url);
     }
     if (!isCarePlusDoctor && !isCarePlusAdmin) {
+      if (isDoctorStartApiRoute) {
+        return NextResponse.json({ error: 'Active CarePlus staff access required.' }, { status: 403 });
+      }
       const url = request.nextUrl.clone(); url.pathname = '/unauthorized'; return NextResponse.redirect(url);
     }
     return response;
