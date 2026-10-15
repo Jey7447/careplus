@@ -480,9 +480,9 @@ html.dark {
 .cp-doctor-dashboard .cp-active-work {
   position: relative;
   overflow: hidden;
-  border-color: color-mix(in srgb, var(--cp-accent) 35%, var(--cp-line));
+  border-color: var(--cp-line);
   border-radius: 16px;
-  background: var(--cp-accent-soft);
+  background: var(--cp-surface);
   box-shadow: none;
 }
 .cp-doctor-dashboard .cp-active-work::before {
@@ -522,8 +522,8 @@ html.dark {
   border-radius: 0 10px 10px 0;
 }
 html.dark .cp-doctor-dashboard .cp-active-work {
-  background: color-mix(in srgb, var(--cp-accent) 17%, var(--cp-surface));
-  border-color: color-mix(in srgb, var(--cp-accent) 42%, var(--cp-line));
+  background: var(--cp-surface);
+  border-color: color-mix(in srgb, var(--cp-accent) 30%, var(--cp-line));
 }
 html.dark .cp-doctor-dashboard .cp-active-work::before { background: #5eead4; }
 @media (max-width: 640px) {
