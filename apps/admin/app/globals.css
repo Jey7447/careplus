@@ -409,3 +409,40 @@ html.dark {
   outline: 3px solid var(--cp-focus);
   outline-offset: 3px;
 }
+
+
+/* Clinical workspace refinement: prioritize the note, keep supporting panels quiet. */
+.cp-note-editor {
+  border-radius: 18px;
+  box-shadow: 0 2px 8px rgb(24 43 42 / 0.035);
+}
+.cp-note-label {
+  display: block;
+  color: var(--cp-ink);
+  font-size: 0.9rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+.cp-note-help {
+  color: var(--cp-ink-muted);
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+.cp-note-field {
+  min-height: 3.25rem;
+  border-color: var(--cp-line);
+  background: var(--cp-surface);
+  color: var(--cp-ink);
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+.cp-note-field::placeholder { color: var(--cp-ink-muted); opacity: .9; }
+.cp-note-field:hover:not(:disabled) { border-color: var(--cp-ink-muted); }
+.cp-note-field:focus-visible {
+  border-color: var(--cp-focus);
+  outline: 3px solid color-mix(in srgb, var(--cp-focus) 22%, transparent);
+  outline-offset: 1px;
+}
+.cp-note-field:disabled { background: var(--cp-surface-muted); cursor: not-allowed; }
+@media (prefers-reduced-motion: reduce) {
+  .cp-note-field { transition: none; }
+}
