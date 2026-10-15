@@ -331,3 +331,81 @@ html.dark .active-work-status {
 }
 html.dark .active-work-link { color: #5eead4; }
 html.dark .active-work-card:hover { border-color: #5eead4; }
+
+
+/* CarePlus design foundation
+   Semantic tokens are the source of truth for new/refactored components.
+   Existing Tailwind utilities remain until each page is migrated deliberately. */
+:root {
+  color-scheme: light;
+  --cp-canvas: #f4f6f4;
+  --cp-surface: #ffffff;
+  --cp-surface-muted: #edf2ef;
+  --cp-ink: #182b2a;
+  --cp-ink-soft: #425653;
+  --cp-ink-muted: #667874;
+  --cp-line: #d9e3de;
+  --cp-accent: #176b60;
+  --cp-accent-hover: #10564d;
+  --cp-accent-soft: #e1f2ed;
+  --cp-focus: #0f766e;
+  --cp-danger: #a73535;
+  --cp-danger-soft: #fceaea;
+  --cp-warning: #875a13;
+  --cp-warning-soft: #fbf0d6;
+  --cp-success: #17664e;
+  --cp-success-soft: #e0f3e9;
+  --cp-radius-control: 8px;
+  --cp-radius-panel: 14px;
+  --cp-radius-feature: 18px;
+  --cp-shadow-panel: 0 1px 2px rgb(24 43 42 / 0.04);
+  --cp-content-width: 1440px;
+}
+html.dark {
+  color-scheme: dark;
+  --cp-canvas: #101918;
+  --cp-surface: #172220;
+  --cp-surface-muted: #202e2b;
+  --cp-ink: #eef5f1;
+  --cp-ink-soft: #c0d0c9;
+  --cp-ink-muted: #91a59c;
+  --cp-line: #30413b;
+  --cp-accent: #68c5b1;
+  --cp-accent-hover: #8bd8c7;
+  --cp-accent-soft: #173b34;
+  --cp-focus: #68c5b1;
+  --cp-danger: #ffaaaa;
+  --cp-danger-soft: #462626;
+  --cp-warning: #f2cb78;
+  --cp-warning-soft: #41341e;
+  --cp-success: #8bd8b2;
+  --cp-success-soft: #183b2e;
+  --cp-shadow-panel: 0 1px 2px rgb(0 0 0 / 0.18);
+}
+
+/* Semantic building blocks for the gradual page-by-page migration. */
+.cp-page {
+  min-height: 100vh;
+  background: var(--cp-canvas);
+  color: var(--cp-ink);
+}
+.cp-panel {
+  border: 1px solid var(--cp-line);
+  border-radius: var(--cp-radius-panel);
+  background: var(--cp-surface);
+  box-shadow: var(--cp-shadow-panel);
+}
+.cp-eyebrow {
+  color: var(--cp-ink-muted);
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.12em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+.cp-muted { color: var(--cp-ink-muted); }
+.cp-secondary { color: var(--cp-ink-soft); }
+.cp-focusable:focus-visible {
+  outline: 3px solid var(--cp-focus);
+  outline-offset: 3px;
+}
