@@ -218,7 +218,7 @@ export default async function DoctorDashboardPage() {
             )}
 
             <div className="grid gap-6 xl:grid-cols-[1.5fr_1fr]">
-              <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <section className="cp-panel p-6">
                 <div className="flex items-center justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Patient queue</p><h2 className="mt-1 text-lg font-semibold">Today's consultations</h2><p className="mt-1 text-sm text-slate-500">Patients assigned to you, ordered by appointment time.</p></div><span className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600">{todayQueue.length} today</span></div>
                 <div className="mt-5 space-y-3">
                   {todayQueue.map((appointment) => {
@@ -235,17 +235,17 @@ export default async function DoctorDashboardPage() {
                 </div>
               </section>
 
-              <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <section className="cp-panel p-6">
                 <div className="flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-xl bg-slate-100"><AlertTriangle size={18} /></div><div><h2 className="font-semibold">Clinical focus</h2><p className="text-sm text-slate-500">Quick reminders for today's work.</p></div></div>
                 <div className="mt-5 space-y-3">
-                  <div className="rounded-xl bg-slate-50 p-4"><p className="text-sm font-medium">Start encounters from the patient queue</p><p className="mt-1 text-xs leading-5 text-slate-500">Each consultation should become a clinical encounter before documentation is completed.</p></div>
-                  <div className="rounded-xl bg-slate-50 p-4"><p className="text-sm font-medium">Review allergies before prescribing</p><p className="mt-1 text-xs leading-5 text-slate-500">Allergy history is part of the longitudinal patient record and should be checked before medication decisions.</p></div>
-                  <div className="rounded-xl bg-slate-50 p-4"><p className="text-sm font-medium">Document the clinical plan</p><p className="mt-1 text-xs leading-5 text-slate-500">Capture the assessment and plan inside the encounter so the record remains longitudinal.</p></div>
+                  <div className="rounded-xl p-4" style={{ background: "var(--cp-surface-muted)" }}><p className="text-sm font-medium">Start encounters from the patient queue</p><p className="mt-1 text-xs leading-5 text-slate-500">Each consultation should become a clinical encounter before documentation is completed.</p></div>
+                  <div className="rounded-xl p-4" style={{ background: "var(--cp-surface-muted)" }}><p className="text-sm font-medium">Review allergies before prescribing</p><p className="mt-1 text-xs leading-5 text-slate-500">Allergy history is part of the longitudinal patient record and should be checked before medication decisions.</p></div>
+                  <div className="rounded-xl p-4" style={{ background: "var(--cp-surface-muted)" }}><p className="text-sm font-medium">Document the clinical plan</p><p className="mt-1 text-xs leading-5 text-slate-500">Capture the assessment and plan inside the encounter so the record remains longitudinal.</p></div>
                 </div>
               </section>
             </div>
 
-            <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <section className="cp-panel p-6">
               <div className="flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-xl bg-slate-100"><Pill size={18} /></div><div><h2 className="font-semibold">Clinical workflow</h2><p className="text-sm text-slate-500">The next layer is prescriptions and medication history.</p></div></div>
               <div className="mt-5 grid gap-4 md:grid-cols-3">
                 <div className="rounded-xl border border-slate-200 p-4"><CheckCircle2 size={18} className="text-slate-400" /><p className="mt-3 text-sm font-semibold">Encounter</p><p className="mt-1 text-xs text-slate-500">Consultation becomes a structured clinical record.</p></div>
