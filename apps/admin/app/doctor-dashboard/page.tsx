@@ -6,8 +6,6 @@ import {
   Clock3,
   FileText,
   HeartPulse,
-  LayoutDashboard,
-  LogOut,
   MessageSquareText,
   Pill,
   Settings,
@@ -188,30 +186,30 @@ export default async function DoctorDashboardPage() {
             </div>
 
             {resumableEncounters.length > 0 && (
-              <section className="rounded-2xl border border-emerald-200 bg-emerald-50/70 p-5 shadow-sm sm:p-6">
+              <section className="active-work-panel rounded-2xl border p-5 shadow-sm sm:p-6">
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">Continue clinical work</p>
-                    <h2 className="mt-1 text-lg font-semibold text-slate-950">Encounters in progress</h2>
-                    <p className="mt-1 text-sm text-slate-600">Return to a saved encounter at any time. Your draft notes remain separate from signing or completion.</p>
+                    <p className="active-work-eyebrow text-xs font-semibold uppercase tracking-[0.18em]">Continue clinical work</p>
+                    <h2 className="active-work-title mt-1 text-lg font-semibold">Encounters in progress</h2>
+                    <p className="active-work-description mt-1 text-sm">Return to a saved encounter at any time. Your draft notes remain separate from signing or completion.</p>
                   </div>
-                  <span className="w-fit rounded-full bg-white px-3 py-1 text-xs font-medium text-emerald-800">{resumableEncounters.length} active</span>
+                  <span className="active-work-count w-fit rounded-full px-3 py-1 text-xs font-medium">{resumableEncounters.length} active</span>
                 </div>
                 <div className="mt-4 grid gap-3 md:grid-cols-2">
                   {resumableEncounters.map((encounter) => {
                     const patient = encounter.patient;
                     const appointment = encounter.appointment!;
                     return (
-                      <Link key={encounter.encounter_id} href={`/doctor-dashboard/encounters/${encounter.encounter_id}`} className="group rounded-xl border border-emerald-200 bg-white p-4 transition hover:border-emerald-400 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">
+                      <Link key={encounter.encounter_id} href={`/doctor-dashboard/encounters/${encounter.encounter_id}`} className="active-work-card group rounded-xl border p-4 transition hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0">
-                            <p className="font-semibold text-slate-950">{patient ? `${patient.first_name} ${patient.last_name}` : 'Patient record'}</p>
-                            <p className="mt-1 text-sm text-slate-600">{encounter.chief_complaint || appointment.reason_for_visit || appointment.appointment_type}</p>
-                            <p className="mt-2 text-xs text-slate-500">Encounter #{encounter.encounter_id} · Appointment #{appointment.appointment_id}</p>
+                            <p className="active-work-patient font-semibold">{patient ? `${patient.first_name} ${patient.last_name}` : 'Patient record'}</p>
+                            <p className="active-work-description mt-1 text-sm">{encounter.chief_complaint || appointment.reason_for_visit || appointment.appointment_type}</p>
+                            <p className="active-work-meta mt-2 text-xs">Encounter #{encounter.encounter_id} · Appointment #{appointment.appointment_id}</p>
                           </div>
-                          <span className="shrink-0 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-medium text-emerald-800">In Progress</span>
+                          <span className="active-work-status shrink-0 rounded-full px-2.5 py-1 text-xs font-medium">In Progress</span>
                         </div>
-                        <p className="mt-3 text-sm font-semibold text-emerald-800">Resume encounter →</p>
+                        <p className="active-work-link mt-3 text-sm font-semibold">Resume encounter →</p>
                       </Link>
                     );
                   })}
