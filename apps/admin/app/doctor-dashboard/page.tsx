@@ -108,6 +108,45 @@ export default async function DoctorDashboardPage() {
 
   const encounterMap = new Map((encounters ?? []).map((e) => [e.appointment_id, e]));
 
+  // Keep active clinical work discoverable even when the appointment date is
+  // in the past or the clinician navigates away from the encounter page.
+  const { data: activeAppointments, error: activeAppointmentsError } = await supabase
+    .from('appointments')
+    .select('appointment_id, patient_id, appointment_date, appointment_time, appointment_type, reason_for_visit')
+    .eq('doctor_id', doctorId)
+    .eq('appointment_status', 'In Progress')
+    .order('appointment_date', { ascending: false })
+    .order('appointment_time', { ascending: false })
+    .limit(50);
+
+  if (activeAppointmentsError) {
+    console.error('Doctor dashboard: failed to load active appointments', activeAppointmentsError);
+    throw new Error('Unable to load your active encounters.');
+  }
+
+  const activeAppointmentIds = (activeAppointments ?? []).map((a) => a.appointment_id);
+  const [{ data: activeEncounterRows, error: activeEncountersError }, { data: activePatients, error: activePatientsError }] = activeAppointmentIds.length
+    ? await Promise.all([
+        supabase.from('encounters').select('encounter_id, appointment_id, patient_id, status, chief_complaint, started_at').in('appointment_id', activeAppointmentIds).eq('status', 'In Progress'),
+        supabase.from('patients').select('patient_id, first_name, last_name').in('patient_id', [...new Set((activeAppointments ?? []).map((a) => a.patient_id))]),
+      ])
+    : [{ data: [], error: null }, { data: [], error: null }];
+
+  if (activeEncountersError) {
+    console.error('Doctor dashboard: failed to load active encounters', activeEncountersError);
+    throw new Error('Unable to load your active encounters.');
+  }
+  if (activePatientsError) {
+    console.error('Doctor dashboard: failed to load active encounter patients', activePatientsError);
+    throw new Error('Unable to load patient details for your active encounters.');
+  }
+
+  const activePatientMap = new Map((activePatients ?? []).map((p) => [p.patient_id, p]));
+  const activeAppointmentMap = new Map((activeAppointments ?? []).map((a) => [a.appointment_id, a]));
+  const resumableEncounters = (activeEncounterRows ?? [])
+    .map((encounter) => ({ ...encounter, appointment: activeAppointmentMap.get(encounter.appointment_id), patient: activePatientMap.get(encounter.patient_id) }))
+    .filter((item) => item.appointment);
+
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900">
       <div className="flex min-h-screen">
@@ -147,6 +186,38 @@ export default async function DoctorDashboardPage() {
               <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><div className="flex justify-between"><p className="text-xs uppercase tracking-wide text-slate-500">Upcoming</p><Activity size={18} className="text-slate-400" /></div><p className="mt-3 text-3xl font-semibold">{upcoming.length}</p><p className="mt-1 text-sm text-slate-500">Scheduled or confirmed</p></div>
               <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><div className="flex justify-between"><p className="text-xs uppercase tracking-wide text-slate-500">Active encounters</p><FileText size={18} className="text-slate-400" /></div><p className="mt-3 text-3xl font-semibold">{(encounters ?? []).filter((e) => ['Draft', 'In Progress'].includes(e.status)).length}</p><p className="mt-1 text-sm text-slate-500">Clinical work in progress</p></div>
             </div>
+
+            {resumableEncounters.length > 0 && (
+              <section className="rounded-2xl border border-emerald-200 bg-emerald-50/70 p-5 shadow-sm sm:p-6">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">Continue clinical work</p>
+                    <h2 className="mt-1 text-lg font-semibold text-slate-950">Encounters in progress</h2>
+                    <p className="mt-1 text-sm text-slate-600">Return to a saved encounter at any time. Your draft notes remain separate from signing or completion.</p>
+                  </div>
+                  <span className="w-fit rounded-full bg-white px-3 py-1 text-xs font-medium text-emerald-800">{resumableEncounters.length} active</span>
+                </div>
+                <div className="mt-4 grid gap-3 md:grid-cols-2">
+                  {resumableEncounters.map((encounter) => {
+                    const patient = encounter.patient;
+                    const appointment = encounter.appointment!;
+                    return (
+                      <Link key={encounter.encounter_id} href={`/doctor-dashboard/encounters/${encounter.encounter_id}`} className="group rounded-xl border border-emerald-200 bg-white p-4 transition hover:border-emerald-400 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="font-semibold text-slate-950">{patient ? `${patient.first_name} ${patient.last_name}` : 'Patient record'}</p>
+                            <p className="mt-1 text-sm text-slate-600">{encounter.chief_complaint || appointment.reason_for_visit || appointment.appointment_type}</p>
+                            <p className="mt-2 text-xs text-slate-500">Encounter #{encounter.encounter_id} · Appointment #{appointment.appointment_id}</p>
+                          </div>
+                          <span className="shrink-0 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-medium text-emerald-800">In Progress</span>
+                        </div>
+                        <p className="mt-3 text-sm font-semibold text-emerald-800">Resume encounter →</p>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
 
             <div className="grid gap-6 xl:grid-cols-[1.5fr_1fr]">
               <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
