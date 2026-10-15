@@ -283,3 +283,51 @@ html.dark .bg-red-50\/60 { background-color: #3f1d24 !important; }
 @media (prefers-reduced-motion: reduce) {
   .careplus-signout { transition: none; }
 }
+
+
+/* Clinical active-work panel: explicit theme-aware colors, not broad utility overrides. */
+.active-work-panel {
+  background: #f0fdfa;
+  border-color: #99f6e4;
+}
+.active-work-eyebrow { color: #0f766e; }
+.active-work-title, .active-work-patient { color: #0f172a; }
+.active-work-description { color: #475569; }
+.active-work-count {
+  background: #ccfbf1;
+  color: #115e59;
+}
+.active-work-card {
+  background: #ffffff;
+  border-color: #99f6e4;
+}
+.active-work-meta { color: #64748b; }
+.active-work-status {
+  background: #ccfbf1;
+  color: #115e59;
+}
+.active-work-link { color: #0f766e; }
+.active-work-card:hover { border-color: #0f766e; }
+
+html.dark .active-work-panel {
+  background: #102b2b;
+  border-color: #285b58;
+}
+html.dark .active-work-eyebrow { color: #5eead4; }
+html.dark .active-work-title, html.dark .active-work-patient { color: #f8fafc; }
+html.dark .active-work-description { color: #b6c7d1; }
+html.dark .active-work-count {
+  background: #173f3d;
+  color: #99f6e4;
+}
+html.dark .active-work-card {
+  background: #111827;
+  border-color: #285b58;
+}
+html.dark .active-work-meta { color: #94a3b8; }
+html.dark .active-work-status {
+  background: #173f3d;
+  color: #99f6e4;
+}
+html.dark .active-work-link { color: #5eead4; }
+html.dark .active-work-card:hover { border-color: #5eead4; }
