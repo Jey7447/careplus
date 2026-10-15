@@ -195,7 +195,7 @@ export default async function DoctorDashboardPage() {
                   </div>
                   <span className="active-work-count w-fit rounded-full px-3 py-1 text-xs font-medium">{resumableEncounters.length} active</span>
                 </div>
-                <div className="mt-4 grid gap-3 md:grid-cols-2">
+                <div className="mt-4 grid max-w-3xl gap-3">
                   {resumableEncounters.map((encounter) => {
                     const patient = encounter.patient;
                     const appointment = encounter.appointment!;
