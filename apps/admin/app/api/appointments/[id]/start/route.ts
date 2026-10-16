@@ -3,6 +3,38 @@ import { createClient } from '../../../../../lib/supabase/server';
 
 type RouteContext = { params: Promise<{ id: string }> };
 
+type EncounterResult = {
+  encounter_id?: number | string;
+  encounterId?: number | string;
+  id?: number | string;
+  appointment_id?: number | string;
+  appointmentId?: number | string;
+  encounter_status?: string;
+  status?: string;
+  created_now?: boolean;
+};
+
+function unwrapEncounter(value: unknown): EncounterResult | null {
+  if (Array.isArray(value)) return unwrapEncounter(value[0]);
+  if (!value || typeof value !== 'object') return null;
+
+  const record = value as Record<string, unknown>;
+  const nestedKeys = ['result', 'data', 'encounter'];
+  for (const key of nestedKeys) {
+    if (record[key] !== undefined) {
+      const nested = unwrapEncounter(record[key]);
+      if (nested) return nested;
+    }
+  }
+
+  return record as EncounterResult;
+}
+
+function numericId(value: unknown) {
+  const id = Number(value);
+  return Number.isSafeInteger(id) && id > 0 ? id : null;
+}
+
 export async function POST(_request: Request, { params }: RouteContext) {
   try {
     const supabase = await createClient();
@@ -30,23 +62,52 @@ export async function POST(_request: Request, { params }: RouteContext) {
       return NextResponse.json({ error: message }, { status });
     }
 
-    const rawResult: any = Array.isArray(data) ? data[0] : data;
-    const encounter = rawResult?.result ?? rawResult?.data ?? rawResult?.encounter ?? rawResult;
-    // PostgreSQL bigint values can be serialized by PostgREST as strings.
-    // Normalize IDs at the API boundary before returning JSON to the client.
-    const encounterId = Number(encounter?.encounter_id ?? encounter?.encounterId ?? encounter?.id);
-    const linkedAppointmentId = Number(encounter?.appointment_id ?? encounter?.appointmentId ?? appointmentId);
-    if (!encounter || !Number.isSafeInteger(encounterId) || encounterId < 1 || !Number.isSafeInteger(linkedAppointmentId) || linkedAppointmentId !== appointmentId) {
-      console.error('Start encounter returned an unexpected result shape:', { resultType: typeof rawResult, resultKeys: rawResult && typeof rawResult === 'object' ? Object.keys(rawResult) : [], encounterKeys: encounter && typeof encounter === 'object' ? Object.keys(encounter) : [], appointmentId });
-      return NextResponse.json({ error: 'The start operation returned an unexpected encounter response. No further retry is needed; check the appointment before trying again.' }, { status: 500 });
+    const encounter = unwrapEncounter(data);
+    const encounterId = numericId(encounter?.encounter_id ?? encounter?.encounterId ?? encounter?.id);
+    const linkedAppointmentId = numericId(encounter?.appointment_id ?? encounter?.appointmentId ?? appointmentId);
+
+    if (encounterId && linkedAppointmentId === appointmentId) {
+      return NextResponse.json({
+        encounter_id: encounterId,
+        appointment_id: linkedAppointmentId,
+        status: encounter?.encounter_status ?? encounter?.status ?? 'In Progress',
+        created_now: encounter?.created_now,
+      });
     }
 
-    return NextResponse.json({
-      encounter_id: encounterId,
-      appointment_id: linkedAppointmentId,
-      status: encounter.encounter_status,
-      created_now: encounter.created_now,
+    // The database function is atomic and may have completed even if PostgREST
+    // returned an unexpected RPC envelope. Confirm the durable record before
+    // reporting failure to the clinician, avoiding a false-negative retry.
+    const { data: confirmedEncounter, error: confirmationError } = await supabase
+      .from('encounters')
+      .select('encounter_id, appointment_id, status')
+      .eq('appointment_id', appointmentId)
+      .maybeSingle();
+
+    const confirmedEncounterId = numericId(confirmedEncounter?.encounter_id);
+    const confirmedAppointmentId = numericId(confirmedEncounter?.appointment_id);
+
+    if (!confirmationError && confirmedEncounterId && confirmedAppointmentId === appointmentId) {
+      return NextResponse.json({
+        encounter_id: confirmedEncounterId,
+        appointment_id: confirmedAppointmentId,
+        status: confirmedEncounter?.status ?? 'In Progress',
+        created_now: false,
+      });
+    }
+
+    console.error('Start encounter returned an unexpected result and no durable encounter could be confirmed:', {
+      resultType: typeof data,
+      isArray: Array.isArray(data),
+      resultKeys: data && typeof data === 'object' && !Array.isArray(data) ? Object.keys(data as Record<string, unknown>) : [],
+      encounterKeys: encounter ? Object.keys(encounter) : [],
+      confirmationError: confirmationError?.message ?? null,
+      appointmentId,
     });
+
+    return NextResponse.json({
+      error: 'The start operation could not confirm a clinical encounter. No appointment status change was assumed. Refresh the appointment and try once more if it is still checked in.',
+    }, { status: 500 });
   } catch (error) {
     console.error('Start encounter API error:', error);
     return NextResponse.json({ error: 'Unexpected error while starting the clinical encounter.' }, { status: 500 });
