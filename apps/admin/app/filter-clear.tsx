@@ -15,13 +15,13 @@ export default function FilterClear() {
         if (!controls.length) return;
 
         const wrapper = document.createElement('div');
-        wrapper.className = 'careplus-filter-clear-wrap';
+        wrapper.className = 'shrink-0';
 
         const button = document.createElement('button');
         button.type = 'button';
-        button.className = 'careplus-filter-clear';
+        button.className = 'rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-600 transition hover:border-teal-200 hover:bg-teal-50 hover:text-teal-800 sm:px-5';
         button.setAttribute('aria-label', 'Clear search and filters');
-        button.innerHTML = '<span>Clear</span>';
+        button.textContent = 'Clear';
         button.addEventListener('click', () => {
           window.location.assign(window.location.pathname);
         });
