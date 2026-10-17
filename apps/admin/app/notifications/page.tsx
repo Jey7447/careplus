@@ -1,4 +1,4 @@
-import { ArrowRight, BarChart3, Bell, CalendarDays, CheckCircle2, ClipboardList, HeartPulse, LayoutDashboard, Search, Settings, Stethoscope, Users, XCircle, Clock3 } from 'lucide-react';
+import { ArrowRight, BarChart3, Bell, CalendarDays, CheckCircle2, ClipboardList, Clock3, HeartPulse, LayoutDashboard, Search, Settings, Stethoscope, Users, XCircle } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
@@ -83,60 +83,73 @@ export default async function NotificationsPage({ searchParams }: { searchParams
     <main className="min-h-screen bg-[#f3f8f7] text-slate-950">
       <div className="flex min-h-screen">
         <aside className="hidden w-64 shrink-0 border-r border-slate-200 bg-white lg:flex lg:flex-col">
-          <div className="p-6">
-            <div className="flex items-center gap-3">
-              <div className="grid h-12 w-12 place-items-center rounded-2xl bg-teal-600 text-white shadow-lg shadow-teal-600/20"><HeartPulse size={23} /></div>
-              <div><b className="text-sm">CarePlus</b><p className="text-xs uppercase tracking-[0.16em] text-slate-400">Operations</p></div>
+          <div className="px-5 pb-5 pt-6">
+            <div className="flex items-center gap-3 px-2">
+              <div className="grid h-11 w-11 place-items-center rounded-2xl bg-teal-600 text-white shadow-lg shadow-teal-600/20"><HeartPulse size={22} /></div>
+              <div><b className="text-sm text-slate-950">CarePlus</b><p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">Operations workspace</p></div>
+            </div>
+            <div className="mt-6 rounded-[22px] bg-slate-950 p-5 text-white">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-teal-300">Communication centre</p>
+              <p className="mt-2 text-sm font-semibold">Keep the care loop visible</p>
+              <p className="mt-2 text-xs leading-5 text-slate-400">Every patient message should be traceable from send to delivery.</p>
             </div>
           </div>
           <nav className="flex-1 px-3">
+            <p className="px-3 pb-2 pt-1 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">Workspace</p>
             {navigation.map(([label, href, Icon]) => (
-              <Link key={label} href={href} className={`group mb-1 flex items-center gap-3 rounded-xl px-3 py-3 text-sm transition ${label === 'Notifications' ? 'bg-teal-50 font-semibold text-teal-800 ring-1 ring-teal-100' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-950'}`}>
-                <Icon size={18} />
-                <span>{label}</span>
-                {label === 'Notifications' && <ArrowRight size={15} className="ml-auto" />}
+              <Link key={label} href={href} className={`group mb-1 flex items-center gap-3 rounded-xl px-3 py-3 text-sm transition-all ${label === 'Notifications' ? 'bg-teal-50 font-semibold text-teal-800 ring-1 ring-teal-100' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-950'}`}>
+                <Icon size={18} /><span>{label}</span>{label === 'Notifications' && <ArrowRight size={15} className="ml-auto text-teal-500" />}
               </Link>
             ))}
           </nav>
-          <div className="m-4 rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-600"><p className="font-semibold text-slate-950">Communication centre</p><p className="mt-1 text-xs leading-5 text-slate-400">Keep patient messages visible, traceable and accountable.</p></div>
-          <div className="border-t border-slate-200 p-5 text-xs text-slate-400">CarePlus Administration</div>
+          <div className="border-t border-slate-200 p-4"><div className="rounded-xl bg-slate-50 px-3 py-3 text-xs text-slate-500">CarePlus Administration</div></div>
         </aside>
 
         <section className="min-w-0 flex-1">
-          <header className="relative overflow-hidden bg-[#02091d] px-5 py-8 text-white lg:px-10 lg:py-10">
+          <div className="border-b border-slate-200/80 bg-white lg:hidden">
+            <div className="flex items-center gap-3 px-4 py-3">
+              <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-teal-600 text-white shadow-lg shadow-teal-900/10"><HeartPulse size={20} /></div>
+              <div className="min-w-0"><p className="text-sm font-semibold text-slate-950">CarePlus</p><p className="text-[10px] uppercase tracking-[0.18em] text-slate-400">Operations</p></div>
+            </div>
+            <nav className="flex gap-1 overflow-x-auto px-3 pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {navigation.map(([label, href, Icon]) => <Link key={label} href={href} aria-current={label === 'Notifications' ? 'page' : undefined} className={`flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2.5 text-xs font-medium transition ${label === 'Notifications' ? 'bg-teal-50 text-teal-800 ring-1 ring-teal-100' : 'text-slate-600 hover:bg-slate-50'}`}><Icon size={15} /><span>{label}</span></Link>)}
+            </nav>
+          </div>
+
+          <header className="relative overflow-hidden bg-[#02091d] px-5 py-8 text-white sm:px-6 lg:px-10 lg:py-10">
             <div className="absolute -right-24 -top-28 h-72 w-72 rounded-full bg-teal-500/10 blur-3xl" />
-            <div className="relative mx-auto flex max-w-7xl items-end justify-between gap-6">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-teal-300">CarePlus · Communication centre</p>
+            <div className="absolute bottom-[-110px] left-1/3 h-64 w-64 rounded-full bg-cyan-400/5 blur-3xl" />
+            <div className="relative mx-auto flex max-w-[1500px] items-end justify-between gap-6">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-teal-300 sm:text-xs"><Bell size={14} /> CarePlus · Communication centre</div>
                 <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl">Keep every message accounted for.</h1>
-                <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-400 sm:text-base">See what has been sent, what arrived, and what still needs attention across the patient communication flow.</p>
+                <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300 sm:text-base">See what has been sent, what arrived, and what still needs attention across the patient communication flow.</p>
               </div>
-              <div className="hidden text-right sm:block"><p className="text-xs text-slate-500">Signed in as</p><p className="mt-1 text-sm font-medium">{email}</p></div>
+              <div className="hidden shrink-0 text-right sm:block"><p className="text-xs text-slate-500">Signed in as</p><p className="mt-1 text-sm font-medium">{email}</p></div>
             </div>
           </header>
 
-          <div className="mx-auto max-w-7xl space-y-6 p-5 lg:p-8">
+          <div className="mx-auto max-w-[1500px] space-y-6 p-4 sm:p-5 lg:space-y-7 lg:p-8">
             <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-[1.55fr_repeat(4,1fr)]">
-              <div className="relative overflow-hidden rounded-[1.75rem] bg-teal-700 p-6 text-white shadow-xl shadow-teal-900/10 sm:col-span-2 xl:col-span-1">
+              <div className="relative overflow-hidden rounded-[26px] bg-teal-700 p-6 text-white shadow-xl shadow-teal-900/10 sm:col-span-2 xl:col-span-1">
                 <div className="absolute -right-8 -top-16 h-40 w-40 rounded-full bg-teal-400/20" />
-                <p className="relative text-xs font-semibold uppercase tracking-[0.2em] text-teal-100">Communication pulse</p>
+                <p className="relative text-[10px] font-bold uppercase tracking-[0.2em] text-teal-100">Communication pulse</p>
                 <p className="relative mt-5 text-4xl font-semibold tracking-tight">{deliveryRate}%</p>
                 <p className="relative mt-1 font-medium">delivery success rate</p>
                 <p className="relative mt-3 max-w-xs text-sm leading-5 text-teal-50/80">A quick read of how reliably the loaded notification queue is reaching its destination.</p>
               </div>
               {metricCards.map(({ label, value, caption, Icon }) => (
-                <div key={label} className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm">
-                  <div className="flex items-center justify-between"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">{label}</p><Icon size={18} className="text-teal-600" /></div>
-                  <p className="mt-6 text-3xl font-semibold tracking-tight">{value}</p>
-                  <p className="mt-1 text-sm font-medium text-slate-700">{caption}</p>
+                <div key={label} className="rounded-[26px] border border-slate-200 bg-white p-5 shadow-sm lg:p-6">
+                  <div className="flex items-center justify-between"><p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">{label}</p><Icon size={18} className="text-teal-600" /></div>
+                  <p className="mt-6 text-3xl font-semibold tracking-tight">{value}</p><p className="mt-1 text-sm font-medium text-slate-700">{caption}</p>
                 </div>
               ))}
             </section>
 
-            <section className="rounded-[1.75rem] border border-teal-100 bg-white p-5 shadow-sm lg:p-6">
+            <section className="rounded-[26px] border border-teal-100 bg-white p-5 shadow-sm lg:p-6">
               <div className="mb-5 flex items-start gap-3">
                 <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-teal-50 text-teal-700"><Search size={18} /></div>
-                <div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-teal-700">Find a message</p><h2 className="mt-1 font-semibold">Search the communication trail</h2><p className="mt-1 text-sm text-slate-500">Filter by recipient, status or channel.</p></div>
+                <div><p className="text-[10px] font-bold uppercase tracking-[0.2em] text-teal-700">Find a message</p><h2 className="mt-1 font-semibold">Search the communication trail</h2><p className="mt-1 text-sm text-slate-500">Filter by recipient, status or channel.</p></div>
               </div>
               <form className="grid gap-3 xl:grid-cols-[1fr_180px_180px_auto]" method="get">
                 <input name="search" defaultValue={params.search ?? ''} placeholder="Recipient, contact, type, message or appointment ID" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-teal-500 focus:bg-white focus:ring-4 focus:ring-teal-50" />
@@ -146,14 +159,14 @@ export default async function NotificationsPage({ searchParams }: { searchParams
               </form>
             </section>
 
-            <section className="overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white shadow-sm">
+            <section className="overflow-hidden rounded-[26px] border border-slate-200 bg-white shadow-sm">
               <div className="flex flex-col gap-3 border-b border-slate-100 px-5 py-5 sm:flex-row sm:items-center sm:justify-between lg:px-6">
-                <div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">The communication trail</p><h2 className="mt-1 text-xl font-semibold">Notification history</h2><p className="mt-1 text-sm text-slate-500">Showing {filteredRows.length} of up to 100 loaded notifications.</p></div>
+                <div><p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">The communication trail</p><h2 className="mt-1 text-xl font-semibold">Notification history</h2><p className="mt-1 text-sm text-slate-500">Showing {filteredRows.length} of up to 100 loaded notifications.</p></div>
                 {error && <span className="rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-medium text-red-700">Unable to load</span>}
               </div>
               <div className="overflow-x-auto">
                 <table className="min-w-[850px] w-full text-sm">
-                  <thead className="bg-slate-50 text-left text-xs uppercase tracking-[0.14em] text-slate-400"><tr><th className="px-6 py-4 font-semibold">Message</th><th className="px-6 py-4 font-semibold">Recipient</th><th className="px-6 py-4 font-semibold">Channel</th><th className="px-6 py-4 font-semibold">Status</th><th className="px-6 py-4 font-semibold">Sent</th><th className="px-6 py-4 font-semibold">Delivered</th></tr></thead>
+                  <thead className="bg-slate-50 text-left text-[10px] uppercase tracking-[0.14em] text-slate-400"><tr><th className="px-6 py-4 font-bold">Message</th><th className="px-6 py-4 font-bold">Recipient</th><th className="px-6 py-4 font-bold">Channel</th><th className="px-6 py-4 font-bold">Status</th><th className="px-6 py-4 font-bold">Sent</th><th className="px-6 py-4 font-bold">Delivered</th></tr></thead>
                   <tbody className="divide-y divide-slate-100">
                     {filteredRows.map((item) => {
                       const href = `/notifications/${item.notification_id}`;
