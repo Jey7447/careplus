@@ -16,7 +16,6 @@ button, a { -webkit-tap-highlight-color: transparent; }
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Dark-mode surface and text overrides shared across the admin app. */
 html.dark .bg-white { background-color: #111827 !important; }
 html.dark .bg-slate-50 { background-color: #172033 !important; }
 html.dark .bg-slate-100 { background-color: #1f2937 !important; }
@@ -49,11 +48,7 @@ html.dark .bg-blue-50 { background-color: #172554 !important; }
 html.dark .text-blue-700 { color: #93c5fd !important; }
 html.dark .bg-orange-50 { background-color: #3b2413 !important; }
 html.dark .text-orange-700 { color: #fdba74 !important; }
-
-/* Keep intentionally light action buttons light in dark mode. */
 html.dark .dashboard-hero-action { background-color: #ffffff !important; color: #020617 !important; }
-
-/* Softer status tiles remain clearly differentiated in dark mode. */
 html.dark .bg-emerald-50\/60 { background-color: #123326 !important; }
 html.dark .bg-amber-50\/60 { background-color: #3b2a12 !important; }
 html.dark .bg-red-50\/60 { background-color: #3f1d24 !important; }
@@ -62,9 +57,6 @@ html.dark .bg-red-50\/60 { background-color: #3f1d24 !important; }
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 }
 
-
-/* Responsive admin navigation shell. The existing page sidebars are enhanced
-   here so every admin screen gets the same mobile drawer and desktop collapse. */
 .careplus-desktop-toggle {
   position: fixed;
   top: 18px;
@@ -107,227 +99,82 @@ html.dark .bg-red-50\/60 { background-color: #3f1d24 !important; }
     padding-right: 0;
   }
 
-  aside.careplus-sidebar.careplus-collapsed nav a > span:not([aria-hidden="true"]) {
-    display: none;
-  }
-
-  aside.careplus-sidebar.careplus-collapsed nav a > svg:last-child {
-    display: none;
-  }
-
-  aside.careplus-sidebar.careplus-collapsed > div:first-child {
-    justify-content: center;
-    padding-left: 12px;
-    padding-right: 12px;
-  }
-
+  aside.careplus-sidebar.careplus-collapsed nav a > span:not([aria-hidden="true"]) { display: none; }
+  aside.careplus-sidebar.careplus-collapsed nav a > svg:last-child { display: none; }
+  aside.careplus-sidebar.careplus-collapsed > div:first-child { justify-content: center; padding-left: 12px; padding-right: 12px; }
   aside.careplus-sidebar.careplus-collapsed > div:first-child > div:last-child,
-  aside.careplus-sidebar.careplus-collapsed > div:last-child {
-    display: none;
+  aside.careplus-sidebar.careplus-collapsed > div:last-child { display: none; }
+  aside.careplus-sidebar.careplus-collapsed nav { padding-left: 10px; padding-right: 10px; }
+
+  /* Redesigned directory pages intentionally use an icon-only clinical rail. */
+  aside.careplus-sidebar.careplus-compact-sidebar {
+    width: 80px !important;
+    flex-basis: 80px !important;
   }
 
-  aside.careplus-sidebar.careplus-collapsed nav {
-    padding-left: 10px;
-    padding-right: 10px;
+  body:has(aside.careplus-compact-sidebar) .careplus-desktop-toggle {
+    left: 88px;
+  }
+
+  body:has(aside.careplus-compact-sidebar) .careplus-signout {
+    left: 14px;
+    width: 52px;
+  }
+
+  body:has(aside.careplus-compact-sidebar) .careplus-signout > button {
+    justify-content: center;
+    padding-left: 0;
+    padding-right: 0;
   }
 }
 
 @media (max-width: 1023px) {
-  body:has(.careplus-mobile-header) {
-    overflow-x: hidden;
-  }
-
-  body:has(.careplus-mobile-header) main {
-    padding-top: 64px;
-  }
-
-  .careplus-mobile-header {
-    position: fixed;
-    inset: 0 0 auto 0;
-    z-index: 70;
-    display: flex;
-    height: 64px;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 14px;
-    border-bottom: 1px solid rgba(148, 163, 184, 0.2);
-    background: rgba(255, 255, 255, 0.94);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-  }
-
-  .careplus-mobile-brand {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 15px;
-    font-weight: 700;
-    color: #0f172a;
-  }
-
-  .careplus-mobile-brand-icon {
-    display: grid;
-    width: 34px;
-    height: 34px;
-    place-items: center;
-    border-radius: 11px;
-    background: #020617;
-    color: white;
-    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.16);
-  }
-
-  .careplus-menu-button {
-    display: grid;
-    width: 40px;
-    height: 40px;
-    place-items: center;
-    border: 1px solid rgba(148, 163, 184, 0.28);
-    border-radius: 12px;
-    background: #ffffff;
-    color: #0f172a;
-    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.1);
-    cursor: pointer;
-  }
-
-  aside.careplus-sidebar {
-    position: fixed !important;
-    z-index: 75;
-    inset: 0 auto 0 0;
-    display: flex !important;
-    width: min(82vw, 292px) !important;
-    flex-basis: auto !important;
-    flex-direction: column;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    transform: translateX(-105%);
-    transition: transform 240ms ease;
-    box-shadow: 16px 0 40px rgba(15, 23, 42, 0.18);
-  }
-
-  aside.careplus-sidebar.careplus-mobile-open {
-    transform: translateX(0);
-  }
-
-  .careplus-desktop-toggle {
-    display: none;
-  }
-
-  .careplus-sidebar-backdrop {
-    position: fixed;
-    inset: 0;
-    z-index: 74;
-    display: block;
-    border: 0;
-    background: rgba(15, 23, 42, 0.45);
-    backdrop-filter: blur(2px);
-    -webkit-backdrop-filter: blur(2px);
-  }
-
-  html.dark .careplus-mobile-header {
-    border-color: #273244;
-    background: rgba(11, 17, 32, 0.94);
-  }
-
+  body:has(.careplus-mobile-header) { overflow-x: hidden; }
+  body:has(.careplus-mobile-header) main { padding-top: 64px; }
+  .careplus-mobile-header { position: fixed; inset: 0 0 auto 0; z-index: 70; display: flex; height: 64px; align-items: center; justify-content: space-between; padding: 0 14px; border-bottom: 1px solid rgba(148, 163, 184, 0.2); background: rgba(255, 255, 255, 0.94); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+  .careplus-mobile-brand { display: inline-flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 700; color: #0f172a; }
+  .careplus-mobile-brand-icon { display: grid; width: 34px; height: 34px; place-items: center; border-radius: 11px; background: #020617; color: white; box-shadow: 0 6px 16px rgba(15, 23, 42, 0.16); }
+  .careplus-menu-button { display: grid; width: 40px; height: 40px; place-items: center; border: 1px solid rgba(148, 163, 184, 0.28); border-radius: 12px; background: #ffffff; color: #0f172a; box-shadow: 0 6px 18px rgba(15, 23, 42, 0.1); cursor: pointer; }
+  aside.careplus-sidebar { position: fixed !important; z-index: 75; inset: 0 auto 0 0; display: flex !important; width: min(82vw, 292px) !important; flex-basis: auto !important; flex-direction: column; overflow-y: auto; overscroll-behavior: contain; transform: translateX(-105%); transition: transform 240ms ease; box-shadow: 16px 0 40px rgba(15, 23, 42, 0.18); }
+  aside.careplus-sidebar.careplus-mobile-open { transform: translateX(0); }
+  .careplus-desktop-toggle { display: none; }
+  .careplus-sidebar-backdrop { position: fixed; inset: 0; z-index: 74; display: block; border: 0; background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); }
+  html.dark .careplus-mobile-header { border-color: #273244; background: rgba(11, 17, 32, 0.94); }
   html.dark .careplus-mobile-brand { color: #f8fafc; }
-
-  html.dark .careplus-menu-button {
-    border-color: #334155;
-    background: #111827;
-    color: #e5e7eb;
-  }
+  html.dark .careplus-menu-button { border-color: #334155; background: #111827; color: #e5e7eb; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .careplus-desktop-toggle,
-  aside.careplus-sidebar {
-    transition: none !important;
-  }
+  .careplus-desktop-toggle, aside.careplus-sidebar { transition: none !important; }
 }
 
-
-/* Shared sign-out control */
-.careplus-signout {
-  position: fixed;
-  z-index: 70;
-  left: 12px;
-  bottom: 14px;
-  width: 232px;
-  transition: left 220ms ease, width 220ms ease;
-}
-.careplus-signout > button {
-  border: 1px solid rgb(226 232 240);
-  background: rgb(255 255 255);
-  box-shadow: 0 8px 24px rgb(15 23 42 / 0.08);
-}
-.careplus-signout.is-collapsed {
-  left: 12px;
-  width: 52px;
-}
-.careplus-signout.is-collapsed > button {
-  justify-content: center;
-  padding-left: 0;
-  padding-right: 0;
-}
+.careplus-signout { position: fixed; z-index: 70; left: 12px; bottom: 14px; width: 232px; transition: left 220ms ease, width 220ms ease; }
+.careplus-signout > button { border: 1px solid rgb(226 232 240); background: rgb(255 255 255); box-shadow: 0 8px 24px rgb(15 23 42 / 0.08); }
+.careplus-signout.is-collapsed { left: 12px; width: 52px; }
+.careplus-signout.is-collapsed > button { justify-content: center; padding-left: 0; padding-right: 0; }
 @media (max-width: 1023px) {
-  .careplus-signout {
-    left: 18px;
-    bottom: 18px;
-    width: 260px;
-    transform: translateX(-120%);
-    transition: transform 220ms ease;
-  }
-  body.careplus-menu-open .careplus-signout {
-    transform: translateX(0);
-  }
+  .careplus-signout { left: 18px; bottom: 18px; width: 260px; transform: translateX(-120%); transition: transform 220ms ease; }
+  body.careplus-menu-open .careplus-signout { transform: translateX(0); }
 }
-@media (prefers-reduced-motion: reduce) {
-  .careplus-signout { transition: none; }
-}
+@media (prefers-reduced-motion: reduce) { .careplus-signout { transition: none; } }
 
-
-/* Clinical active-work panel: explicit theme-aware colors, not broad utility overrides. */
-.active-work-panel {
-  background: #f0fdfa;
-  border-color: #99f6e4;
-}
+.active-work-panel { background: #f0fdfa; border-color: #99f6e4; }
 .active-work-eyebrow { color: #0f766e; }
 .active-work-title, .active-work-patient { color: #0f172a; }
 .active-work-description { color: #475569; }
-.active-work-count {
-  background: #ccfbf1;
-  color: #115e59;
-}
-.active-work-card {
-  background: #ffffff;
-  border-color: #99f6e4;
-}
+.active-work-count { background: #ccfbf1; color: #115e59; }
+.active-work-card { background: #ffffff; border-color: #99f6e4; }
 .active-work-meta { color: #64748b; }
-.active-work-status {
-  background: #ccfbf1;
-  color: #115e59;
-}
+.active-work-status { background: #ccfbf1; color: #115e59; }
 .active-work-link { color: #0f766e; }
 .active-work-card:hover { border-color: #0f766e; }
-
-html.dark .active-work-panel {
-  background: #102b2b;
-  border-color: #285b58;
-}
+html.dark .active-work-panel { background: #102b2b; border-color: #285b58; }
 html.dark .active-work-eyebrow { color: #5eead4; }
 html.dark .active-work-title, html.dark .active-work-patient { color: #f8fafc; }
 html.dark .active-work-description { color: #b6c7d1; }
-html.dark .active-work-count {
-  background: #173f3d;
-  color: #99f6e4;
-}
-html.dark .active-work-card {
-  background: #111827;
-  border-color: #285b58;
-}
+html.dark .active-work-count { background: #173f3d; color: #99f6e4; }
+html.dark .active-work-card { background: #111827; border-color: #285b58; }
 html.dark .active-work-meta { color: #94a3b8; }
-html.dark .active-work-status {
-  background: #173f3d;
-  color: #99f6e4;
-}
+html.dark .active-work-status { background: #173f3d; color: #99f6e4; }
 html.dark .active-work-link { color: #5eead4; }
 html.dark .active-work-card:hover { border-color: #5eead4; }
