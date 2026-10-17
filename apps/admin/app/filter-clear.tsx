@@ -1,6 +1,5 @@
 'use client';
 
-import { RotateCcw } from 'lucide-react';
 import { useEffect } from 'react';
 
 /** Adds a consistent one-click reset to every GET-based search/filter form. */
