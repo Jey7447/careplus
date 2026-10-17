@@ -10,7 +10,8 @@ export default function AdminShell() {
   const [ready, setReady] = useState(false);
   const [hasSidebar, setHasSidebar] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [desktopCollapsed, setDesktopCollapsed] = useState(false);
+  // Keep the desktop shell compact by default. Users can expand it with the rail toggle.
+  const [desktopCollapsed, setDesktopCollapsed] = useState(true);
 
   useEffect(() => {
     setReady(false);
