@@ -4,6 +4,7 @@ import ThemeToggle from './theme-toggle';
 import AdminFeedbackNavPatch from './admin-feedback-nav-patch';
 import AdminShell from './admin-shell';
 import FilterClear from './filter-clear';
+import TimeAwareGreeting from './time-aware-greeting';
 
 export const metadata: Metadata = {
   title: 'CarePlus Medical Centre',
@@ -18,6 +19,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AdminFeedbackNavPatch />
         <AdminShell />
         <FilterClear />
+        <TimeAwareGreeting />
         <ThemeToggle />
       </body>
     </html>
