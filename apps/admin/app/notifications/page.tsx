@@ -1,4 +1,5 @@
 import { ArrowRight, BarChart3, Bell, CalendarDays, CheckCircle2, ClipboardList, HeartPulse, LayoutDashboard, Search, Settings, Stethoscope, Users, XCircle, Clock3 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { createClient } from '../../lib/supabase/server';
@@ -71,6 +72,12 @@ export default async function NotificationsPage({ searchParams }: { searchParams
   };
   const email = typeof claimsData.claims.email === 'string' ? claimsData.claims.email : 'Authenticated staff';
   const deliveryRate = rows.length ? Math.round((counts.delivered / rows.length) * 100) : 0;
+  const metricCards: Array<{ label: string; value: number; caption: string; Icon: LucideIcon }> = [
+    { label: 'Total', value: counts.total, caption: 'messages in view', Icon: Bell },
+    { label: 'Pending', value: counts.pending, caption: 'awaiting delivery', Icon: Clock3 },
+    { label: 'Delivered', value: counts.delivered, caption: 'confirmed delivered', Icon: CheckCircle2 },
+    { label: 'Failed', value: counts.failed, caption: 'need attention', Icon: XCircle },
+  ];
 
   return (
     <main className="min-h-screen bg-[#f3f8f7] text-slate-950">
@@ -117,16 +124,11 @@ export default async function NotificationsPage({ searchParams }: { searchParams
                 <p className="relative mt-1 font-medium">delivery success rate</p>
                 <p className="relative mt-3 max-w-xs text-sm leading-5 text-teal-50/80">A quick read of how reliably the loaded notification queue is reaching its destination.</p>
               </div>
-              {[
-                ['Total', counts.total, 'messages in view', Bell],
-                ['Pending', counts.pending, 'awaiting delivery', Clock3],
-                ['Delivered', counts.delivered, 'confirmed delivered', CheckCircle2],
-                ['Failed', counts.failed, 'need attention', XCircle],
-              ].map(([label, value, caption, Icon]) => (
-                <div key={label as string} className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm">
-                  <div className="flex items-center justify-between"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">{label as string}</p><Icon size={18} className="text-teal-600" /></div>
-                  <p className="mt-6 text-3xl font-semibold tracking-tight">{value as number}</p>
-                  <p className="mt-1 text-sm font-medium text-slate-700">{caption as string}</p>
+              {metricCards.map(({ label, value, caption, Icon }) => (
+                <div key={label} className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm">
+                  <div className="flex items-center justify-between"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">{label}</p><Icon size={18} className="text-teal-600" /></div>
+                  <p className="mt-6 text-3xl font-semibold tracking-tight">{value}</p>
+                  <p className="mt-1 text-sm font-medium text-slate-700">{caption}</p>
                 </div>
               ))}
             </section>
